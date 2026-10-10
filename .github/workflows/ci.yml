@@ -88,6 +88,16 @@ jobs:
           path: target/wasm32-unknown-unknown/release/safeimage_wasm.wasm
           if-no-files-found: error
 
+  deny:
+    name: cargo deny (advisories, licences, bans, sources)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Pinned to a full commit SHA (the tag v2.1.1, read from the action's repository on 2026-10-10).
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          command: check advisories licenses bans sources
+
   msrv:
     name: MSRV (rust-version in Cargo.toml)
     runs-on: ubuntu-latest
