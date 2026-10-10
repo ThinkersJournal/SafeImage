@@ -4,6 +4,13 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.1] - 2026-10-10
+
+### CI
+- `deny` job (cargo-deny: advisories, licences, bans, sources) with `deny.toml`: an allow list of
+  MIT, Apache-2.0 and BSD-3-Clause; wildcards denied; crates.io is the only registry and git
+  dependencies are refused. The action is pinned to a full commit SHA.
+
 ## [0.3.0] - 2026-10-10
 
 ### Changed (breaking)
