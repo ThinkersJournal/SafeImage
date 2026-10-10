@@ -4,6 +4,21 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.2.3] - 2026-10-10
+
+### Added
+- Layer 4, `report` (S2-4): the generic report mechanism. `ReportDestination` (profile-supplied
+  build, request and interpret), `ReportState` and the pure `next_step` / `apply` transition
+  functions, a closed `DestinationAnswer` in which `Unknown` is never success, backoff of 2, 4, 8,
+  16 then 30 minutes, withdrawal and human-retry rules, credential slots with generic setup
+  prompts, `SetupState::NoDestinationsConfigured` distinct from `Ready`, and redacting `Secret`,
+  `Credentials`, `Person` and `BuiltReport`. It names no destination.
+- 21 more hand mutations (49 native + 5 WASM-boundary), all killed.
+
+### Docs
+- `docs/DESIGN.md`: section 3.4 trait snippet matches the implementation; Q7 recorded as passed on
+  real workerd by the Community lane.
+
 ## [0.2.2] - 2026-10-10
 
 ### Added
