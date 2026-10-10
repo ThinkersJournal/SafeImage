@@ -4,6 +4,16 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.3] - 2026-10-10
+
+### CI
+- `Reference fixtures reproduce from upstream on this runner`: fetches the pinned upstream files
+  (each blob SHA checked), builds them unmodified with the runner's own `g++`, regenerates
+  `tests/fixtures/reference.txt` and requires it to equal the committed file, with a control that a
+  tampered fixture is detected. So the committed fixture is no longer the output of one machine.
+- `tests/reference/build.sh`: `SAFEIMAGE_REF_LOCAL_GXX=1` uses the local compiler instead of the
+  container (the container path is unchanged and still reproduces the committed fixture).
+
 ## [0.3.2] - 2026-10-10
 
 ### Added
