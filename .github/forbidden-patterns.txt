@@ -1,0 +1,16 @@
+# One extended regex per line, matched case-insensitively against every tracked
+# file except this one. Written as character classes so this file does not
+# spell the names it forbids.
+#
+# The hash-match provider's name may not appear in any file, test name or commit
+# of this repository (its terms allow one exact disclosure sentence only, and
+# that sentence lives in the consuming application's own documents).
+arachni[d]
+projectarac[h]nid
+c3[p]\b
+canadian centre for child
+shield\.project
+# Credentials and key material.
+-----BEGIN [A-Z ]*PRIVATE KEY-----
+gh[pousr]_[A-Za-z0-9]{30,}
+AKIA[0-9A-Z]{16}
