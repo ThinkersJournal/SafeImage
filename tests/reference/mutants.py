@@ -33,6 +33,16 @@ MUTANTS = [
     ("min dimension", "src/hash/pdq.rs", "pub(crate) const MIN_HASHABLE_DIM: usize = 5;", "pub(crate) const MIN_HASHABLE_DIM: usize = 4;"),
     ("frame length check", "src/hash/frame.rs", "if rgb.len() != expected {", "if rgb.len() < expected {"),
     ("frame size cap", "src/hash/frame.rs", ".filter(|p| *p <= MAX_FRAME_PIXELS)", ".filter(|p| *p <= usize::MAX)"),
+    ("matcher: strongest takes weakest", "src/matcher/outcome.rs", ".max()", ".min()"),
+    ("matcher: empty set is clean", "src/matcher/outcome.rs", ".unwrap_or(MatchOutcome::Unavailable(Unavailable::NotConfigured))", ".unwrap_or(MatchOutcome::Clean(CleanBasis::default()))"),
+    ("matcher: empty mock is clean", "src/matcher/mock.rs", "return MatchOutcome::Unavailable(Unavailable::NotConfigured);", "return MatchOutcome::Clean(super::outcome::CleanBasis::default());"),
+    ("matcher: throttle map", "src/matcher/protocol.rs", "429 => Some(Unavailable::Throttled),", "429 => Some(Unavailable::ServerError),"),
+    ("matcher: 403 not refused", "src/matcher/protocol.rs", "401 | 403 => Some(Unavailable::CredentialsRefused),", "401 => Some(Unavailable::CredentialsRefused),"),
+    ("matcher: retry throttled", "src/matcher/protocol.rs", "Unavailable::Timeout | Unavailable::ServerError)", "Unavailable::Timeout | Unavailable::ServerError | Unavailable::Throttled)"),
+    ("matcher: unlimited retries", "src/matcher/protocol.rs", "retries_done < self.max_retries", "retries_done <= self.max_retries"),
+    ("matcher: request size bound", "src/matcher/protocol.rs", "hashes.len() > Self::MAX_HASHES", "hashes.len() > Self::MAX_HASHES + 1"),
+    ("matcher: body cap exclusive", "src/matcher/protocol.rs", "body.len() <= cap", "body.len() < cap"),
+    ("matcher: detail count cap", "src/matcher/outcome.rs", "details.truncate(MAX_DETAILS);", "details.truncate(MAX_DETAILS + 1000);"),
 ]
 
 

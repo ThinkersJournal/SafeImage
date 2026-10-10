@@ -4,6 +4,16 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.2.2] - 2026-10-10
+
+### Added
+- Layer 2, `matcher` (S2-3): `MatchRequest` (1 to 8 hashes), `MatchOutcome` ordered
+  `Clean` < `Unavailable` < `Match`, closed `Unavailable` reasons, `strongest`, the sans-I/O
+  `ProviderProtocol` with plain-data `HttpRequestSpec`/`HttpResponseSpec`, `classify_status`,
+  `RetryPolicy::decide`, `MockMatcher`, and `conformance_failures`, a fail-closed suite a provider
+  profile runs against itself. No provider is implemented here (profiles live outside the repo).
+- 10 more hand mutations (28 native + 5 WASM-boundary), all killed.
+
 ## [0.2.1] - 2026-10-10
 
 ### Added

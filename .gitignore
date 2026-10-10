@@ -1,3 +1,4 @@
 /target
 /supertool
 *.log
+__pycache__/
