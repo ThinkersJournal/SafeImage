@@ -1,5 +1,10 @@
 //! SafeImage: known-image matching, evidence handling and report building.
 //!
-//! This crate is a placeholder for the layers described in `docs/DESIGN.md`.
-//! It carries no behaviour yet; code arrives only after the crate boundary in
-//! that document has been agreed with its first consumer.
+//! Layer 1 ([`hash`]) is implemented: perceptual hashing of a decoded frame. The other layers
+//! are described in `docs/DESIGN.md` and arrive per `docs/PLAN-step2.md`.
+
+#![no_std]
+
+extern crate alloc;
+
+pub mod hash;
