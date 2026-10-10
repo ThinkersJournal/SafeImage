@@ -9,3 +9,4 @@ extern crate alloc;
 
 pub mod hash;
 pub mod matcher;
+pub mod report;

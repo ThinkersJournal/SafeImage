@@ -247,9 +247,14 @@ this repository (§3.6).
   pub trait ReportDestination {
       fn id(&self) -> &DestinationId;                        // operator-chosen label, opaque to the crate
       fn credential_slots(&self) -> &[CredentialSlot];       // from the LOADED profile (section 3.6)
-      fn build(&self, r: &ReportInput, c: &Credentials) -> Result<BuiltReport, BuildError>;
-      fn interpret(&self, resp: &HttpResponseSpec) -> DestinationAnswer;   // closed enum, below
-      fn plan(&self, report: &ReportState, now: Instant) -> Step;          // what is due next
+      fn build(&self, r: &ReportInput) -> Result<BuiltReport, BuildError>;  // no credentials in
+      fn request(&self, step: &Step, report: &ReportState, built: &BuiltReport)
+          -> Result<HttpRequestSpec, ProtocolError>;                         // none in the spec
+      fn interpret(&self, step: &Step, resp: &HttpResponseSpec) -> DestinationAnswer;
+      // what is due next is the crate's own pure `next_step(&ReportState, now)`; the transition is
+      // `apply(&ReportState, &Step, &DestinationAnswer, now)`; credentials are applied by the host's
+      // transport by slot key (implemented in section S2-4; the earlier `plan` method was folded
+      // into those two free functions because the state machine is the same for every destination)
   }
   ```
 - `BuiltReport` hands back the **exact bytes** to be sent so the host can preserve them; the crate stores
@@ -455,6 +460,6 @@ that and re-reads the terms at each release.
 | Q4 | Which crate-internal licence mix for Meta-derived files (BSD-3-Clause kept per file, rest MIT OR Apache-2.0)? Proposed as in `NOTICE` | PM | step 2 of §6 |
 | Q5 | Does Lightbulb need layer 5's `ScreenedFrame` token at the API boundary, or at its request handler only? | Lightbulb lane | layer 5's final shape |
 | Q6 | **Resolved by both lanes:** sans-I/O core only in 0.1.x; no `async` driver or transport-bound matcher until a consumer asks | - | - |
-| Q7 | Does a workerd load of the WASM build pass the consumer's workerd gate? Needed before option B is chosen over A | Community lane (proof) | Q1 |
+| Q7 | **Passed 2026-10-10** (Community lane, real workerd via vitest-pool-workers, `CompiledWasm`): synchronous `Instance`, no imports, exact exports, 18 reference frames bit-exact, error codes returned with no trap, no memory growth over 20 dihedral calls at 512x512; about 10 ms per call on a local `wrangler dev` (at the free plan CPU cap), 25.9 KiB upload. Option B is viable; the binding needed no change. Not tested: frames above 512 px, SIMD or other targets | Community lane | - |
 | Q8 | The crate is `publish = false` in a private repo, while the first consumer is public and its rule is "published versions only". Adoption steps 3 to 5 of §6 cannot merge there until a registry (crates.io or otherwise) is chosen | PM, CireSnave via the board | adoption by the consumer, not the crate's own steps 1 to 3 |
 | Q9 | Home and form of profiles (section 3.6): private companion repository, operator-supplied files, or both; and how the first consumer (public) obtains the profile crate, given Q8 | PM, CireSnave via the board, with the Community lane | adoption of layer 4 and of any provider client |
