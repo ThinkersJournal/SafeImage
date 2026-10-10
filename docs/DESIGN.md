@@ -393,7 +393,7 @@ that and re-reads the terms at each release.
 
 | # | Question | Who decides | Blocks |
 |---|---|---|---|
-| Q1 | Option A, B or C in §5 (how a TypeScript consumer uses a Rust crate) | PM with the Community lane | STEP 2 step 2 onward |
+| Q1 | **Decided 2026-10-10 (PM):** sans-I/O core, with a wasm-bindgen build of the pure layers for the TypeScript consumer; proof is the consumer's workerd gate (Q7). Option A (crate on the decoder service) stays available. | PM | - |
 | Q2 | Does the provider accept hash-only lookup with multi-variant arrays, and does it match rotations itself? (Community US3's own implementer check.) | Community lane via the provider's API document | `MatchRequest` shape: one hash or eight |
 | Q3 | Does the NCMEC hash-sharing credential exist and carry PDQ? Decides whether `ListMatcher` ships in 0.1.x or later | CireSnave, via the PM's board | `ListMatcher` priority only |
 | Q4 | Which crate-internal licence mix for Meta-derived files (BSD-3-Clause kept per file, rest MIT OR Apache-2.0)? Proposed as in `NOTICE` | PM | step 2 of §6 |
