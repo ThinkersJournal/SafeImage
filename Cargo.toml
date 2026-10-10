@@ -1,14 +1,28 @@
 [package]
 name = "safeimage"
-version = "0.3.26"
+version = "0.3.27"
 edition = "2024"
 rust-version = "1.91"
 description = "Known-image matching, evidence handling and report building for platforms that accept image uploads."
 license = "(MIT OR Apache-2.0) AND BSD-3-Clause"
 repository = "https://github.com/ThinkersJournal/SafeImage"
 readme = "README.md"
-# Not published until the PM and CireSnave say so; see docs/DESIGN.md section 9.
-publish = false
+keywords = ["perceptual-hash", "pdq", "image", "trust-and-safety", "no-std"]
+categories = ["no-std", "multimedia::images", "algorithms"]
+# The package carries the library, its licences and notices, the README, changelog and design
+# document. Tests, fixtures, CI and the WebAssembly binding crate stay in the repository.
+include = [
+    "/src/**",
+    "/examples/**",
+    "/Cargo.toml",
+    "/README.md",
+    "/CHANGELOG.md",
+    "/LICENSE-MIT",
+    "/LICENSE-APACHE",
+    "/NOTICE",
+    "/docs/DESIGN.md",
+    "/docs/provenance/**",
+]
 
 [workspace]
 members = [".", "wasm"]
