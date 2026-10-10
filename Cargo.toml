@@ -1,14 +1,17 @@
 [package]
 name = "safeimage"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.91"
 description = "Known-image matching, evidence handling and report building for platforms that accept image uploads."
-license = "MIT OR Apache-2.0"
+license = "(MIT OR Apache-2.0) AND BSD-3-Clause"
 repository = "https://github.com/ThinkersJournal/SafeImage"
 readme = "README.md"
 # Not published until the PM and CireSnave say so; see docs/DESIGN.md section 9.
 publish = false
+
+[dependencies]
+libm = "0.2.16"
 
 [lints.rust]
 unsafe_code = "forbid"
