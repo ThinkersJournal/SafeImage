@@ -36,8 +36,13 @@ done
 (cd "$root" && SAFEIMAGE_FRAMES_DIR="$work/frames" cargo test --test write_frames -- --ignored >/dev/null)
 cp "$here/harness.cpp" "$work/src/harness.cpp"
 
-name="safeimage-ref-$$"
-MSYS_NO_PATHCONV=1 docker run --rm --name "$name" -v "$(cygpath -m "$work" 2>/dev/null || echo "$work"):/w" -w /w rust:latest \
-  bash -c 'g++ -std=c++17 -O2 -ffp-contract=off -fno-fast-math -I src src/harness.cpp src/pdq/cpp/hashing/pdqhashing.cpp src/pdq/cpp/hashing/torben.cpp src/pdq/cpp/downscaling/downscaling.cpp src/pdq/cpp/common/pdqhashtypes.cpp src/pdq/cpp/common/pdqhamming.cpp -o harness && ./harness frames $(cat frames/args.txt)' \
-  > "$root/tests/fixtures/reference.txt"
+GXX_ARGS='-std=c++17 -O2 -ffp-contract=off -fno-fast-math -I src src/harness.cpp src/pdq/cpp/hashing/pdqhashing.cpp src/pdq/cpp/hashing/torben.cpp src/pdq/cpp/downscaling/downscaling.cpp src/pdq/cpp/common/pdqhashtypes.cpp src/pdq/cpp/common/pdqhamming.cpp'
+
+if [ "${SAFEIMAGE_REF_LOCAL_GXX:-}" = 1 ]; then
+  # CI path: the runner's own g++ (no container). The result must equal the committed fixture.
+  (cd "$work" && g++ $GXX_ARGS -o harness && ./harness frames $(cat frames/args.txt))     > "$root/tests/fixtures/reference.txt"
+else
+  name="safeimage-ref-$$"
+  MSYS_NO_PATHCONV=1 docker run --rm --name "$name" -v "$(cygpath -m "$work" 2>/dev/null || echo "$work"):/w" -w /w rust:latest     bash -c "g++ $GXX_ARGS -o harness && ./harness frames \$(cat frames/args.txt)"     > "$root/tests/fixtures/reference.txt"
+fi
 echo "wrote tests/fixtures/reference.txt (upstream $SHA)"
