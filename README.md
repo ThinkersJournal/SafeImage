@@ -3,8 +3,8 @@
 Known-image matching, evidence handling and report building for platforms that
 accept image uploads.
 
-**Status: pre-1.0, not published.** All five layers exist and are tested; the
-crate is `publish = false` and the first release is the maintainer's decision.
+**Status: pre-1.0, not yet on crates.io.** All five layers exist and are tested;
+when to publish is the maintainer's decision, not this repository's.
 The boundary and the reasoning are in [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## What it is for
