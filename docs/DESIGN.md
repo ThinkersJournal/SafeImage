@@ -163,8 +163,8 @@ pub enum MatchOutcome {                      // ordered by strength (I2)
      sharing, when credentialed). `ListSource` is a trait; the crate contains no list and no sync client in
      0.1.x.
   3. `ProviderProtocol` implementation for the hash-only HTTP provider. Name-neutral module (`provider`),
-     documented endpoints by role (`hash lookup`, `bytes lookup`, `list version`), never by vendor. A
-     transport-bound `ProviderMatcher<T>` exists only under the `async` feature.
+     documented endpoints by role (`hash lookup`, `bytes lookup`, `list version`), never by vendor. No
+     transport-bound matcher exists in 0.1.x.
 
 **Does not:** decide to quarantine, report or ban. Does not log request bodies.
 
