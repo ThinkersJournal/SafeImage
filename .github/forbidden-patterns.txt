@@ -10,6 +10,11 @@ projectara[c]hnid
 c3[p]\b
 canadian cent[r]e for child
 shield\.proj[e]ct
+# Report destinations and other hash-match or reporting services: no name, in any file, test or commit.
+nc[m]ec
+cybe[r]tip
+\bi[w]f\b
+photo[d]na
 # Credentials and key material.
 -----BEGIN [A-Z ]*PRIVATE KEY-----
 gh[pousr]_[A-Za-z0-9]{30,}

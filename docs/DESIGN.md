@@ -12,7 +12,7 @@ between them. It does not decide implementation order inside a layer or any wire
 |---|---|---|
 | `docs/superpowers/specs/2026-10-01-csam-reporting-pipeline-design.md` (rev 3) | `origin/main` `e5916a6`, 2026-10-10 | intake, case states, report drain, preservation, provider terms (its §11) |
 | `docs/superpowers/specs/2026-10-07-upload-scan-design.md` (rev 3 + rev-4 amendments) | same | PDQ, decode seam, fail-closed table, evidence states |
-| `docs/superpowers/plans/2026-10-01-csam-ncmec-pipeline.md` | same | which plan tasks the crate would replace |
+| the consumer's CSAM pipeline implementation plan (same directory family) | same | which plan tasks the crate would replace |
 | the self-scanning options document and the provider-terms reading notes (portfolio level, not in this repo) | 2026-10-10 | the option space and the terms the design must meet |
 
 **Rules this repo keeps, from the PM's task and the portfolio rules:**
@@ -27,7 +27,7 @@ between them. It does not decide implementation order inside a layer or any wire
 ## 1. Goals and non-goals
 
 **Goals**
-1. One reviewed implementation of known-image matching, evidence handling and CyberTipline reporting, usable by
+1. One reviewed implementation of known-image matching, evidence handling and report filing, usable by
    any application that accepts images (first consumer: Thinker's Journal Community; next: the inference
    server Lightbulb and the Fuel engine, for pre-model screening).
 2. Make the dangerous mistakes unrepresentable: an unavailable scanner reading as "clean", a match being lost
@@ -159,11 +159,12 @@ pub enum MatchOutcome {                      // ordered by strength (I2)
 - **Implementations, in dependency order:**
   1. `MockMatcher` (always ships): scripted outcomes, used by every downstream test. Not behind a test cfg, so
      consumers can use it.
-  2. `ListMatcher<S: ListSource>`: local Hamming search over a hash list the *operator* syncs (NCMEC hash
-     sharing, when credentialed). `ListSource` is a trait; the crate contains no list and no sync client in
+  2. `ListMatcher<S: ListSource>`: local Hamming search over a hash list the *operator* syncs from a
+     source they are credentialed with. `ListSource` is a trait; the crate contains no list and no sync client in
      0.1.x.
-  3. `ProviderProtocol` implementation for the hash-only HTTP provider. Name-neutral module (`provider`),
-     documented endpoints by role (`hash lookup`, `bytes lookup`, `list version`), never by vendor. No
+  3. Concrete `ProviderProtocol` implementations are **profiles** (section 3.6), not part of this repository:
+     endpoint paths and field names identify a provider just as a name does. The public crate has the trait,
+     the request/response data types, the mock, and a *conformance suite* a profile runs against itself. No
      transport-bound matcher exists in 0.1.x.
 
 **Does not:** decide to quarantine, report or ban. Does not log request bodies.
@@ -228,39 +229,53 @@ the admin routes and UI, alarms and email.
 **Replaces (first consumer, see §6):** the pure parts of its intake, confirm/clear and evidence-disposition
 tasks. The adapter that persists them remains the application's.
 
-### 3.4 Layer 4: report builder (NCMEC CyberTipline)
+### 3.4 Layer 4: report builder for a report destination profile
 
-**Does:**
+**Capability claim (the only one this repository makes):** the crate can file reports to the destinations an
+operator is registered with, using credentials the operator holds with each. Whether any duty to report
+exists, and to whom, differs by jurisdiction and operator; that is the operator's, never the crate's.
+
+**The crate names no destination.** It defines the mechanism; each destination is a **profile** kept outside
+this repository (§3.6).
+
+**Does (generic, in this repository):**
 - `ReportInput`: reporting person, reported person, incident, files (`digest`, `viewed_by_esp`,
-  `publicly_available`), the web pages embedding them. **No IP data field exists** unless a host supplies one
-  (an application that stores none leaves the field out; the type makes absence explicit, not defaulted).
-- `build_report_xml(&ReportInput) -> Result<Vec<u8>, BuildError>`: request XML is *built* with an escaper and
-  never parsed; the optional address group is emitted only when all five parts are present (pipeline §4.4).
-  Validated against the NCMEC XSD in the crate's tests once the schema is vendored from NCMEC's own endpoint
-  with its licence recorded; until then the builder is covered by the host's exttest run, not claimed correct.
-- `parse_response(&[u8]) -> Result<ApiResponse, ParseError>`: byte-capped, entities off, only the documented
-  codes (`2000/3100` auth, `4100` validation, `5001` deletion window, `5102` already finished, `1000` server)
-  mapped to a closed enum; unknown codes are `Unknown(code)` and are treated as transient, never as success.
-- The drain as a **step function**: `next_step(report, now) -> Step`
-  (`Submit | Upload(file) | FileInfo(file) | Finish | Retract | Wait(until) | Hold(reason)`), and
-  `apply(report, step_result) -> report`. The host performs the I/O and persists between steps, so a retry
-  resumes where it stopped (pipeline §4.2). Backoff (2, 4, 8 … capped at 30 minutes), the deletion window
-  rule, and `5102 ⇒ finished` live here.
-- **Report timing is a parameter, not a constant, and it is two switches** (the consumer's R1): whether a
-  signal queues a report at the match (`ReportAtMatch`, supplied by the host) and when filing happens (the
-  host's schedule; the crate's step function only says what is due). Classifier and removal-request signals are `false` and **cannot** be set true (I4). An operator's
-  ruling to report known-hash matches at match time is *its* configuration value.
-- Credentials and reporter identity are inputs (I5); there is no default value and an absent one yields
+  `publicly_available`), the pages embedding them. **No IP data field exists** unless a host supplies one
+  (the type makes absence explicit, not defaulted).
+- `trait ReportDestination`: what a profile supplies. It is sans-I/O:
+  ```rust
+  pub trait ReportDestination {
+      fn id(&self) -> &DestinationId;                        // operator-chosen label, opaque to the crate
+      fn credential_slots(&self) -> &[CredentialSlot];       // from the LOADED profile (section 3.6)
+      fn build(&self, r: &ReportInput, c: &Credentials) -> Result<BuiltReport, BuildError>;
+      fn interpret(&self, resp: &HttpResponseSpec) -> DestinationAnswer;   // closed enum, below
+      fn plan(&self, report: &ReportState, now: Instant) -> Step;          // what is due next
+  }
+  ```
+- `BuiltReport` hands back the **exact bytes** to be sent so the host can preserve them; the crate stores
+  nothing. Request documents are *built* with an escaper and never parsed.
+- `DestinationAnswer` is a closed enum every profile maps into: `Accepted`, `Transient`, `AuthRefused`,
+  `Invalid(detail)`, `AlreadyFinished`, `WindowExpired`, `Unknown(code)`. `Unknown` is treated as transient and
+  **never as success**. Responses are byte-capped before parsing, with entities off.
+- A generic `Step` vocabulary (`Submit | Upload(file) | Describe(file) | Finish | Retract | Wait(until) |
+  Hold(reason)`), the guarded-write rule for transitions, backoff (2, 4, 8 ... capped at 30 minutes), and the
+  rule that an answer meaning "already finished" is success with the code kept. The host performs the I/O and
+  persists between steps, so a retry resumes where it stopped.
+- **Report timing is a parameter, and it is two switches** (the consumer's R1): whether a signal queues a
+  report at the match (`ReportAtMatch`, supplied by the host) and when filing happens (the host's schedule;
+  the step function only says what is due). Classifier and removal-request signals are `false` and **cannot**
+  be set true (I4).
+- Credentials and reporter identity are inputs (I5). There is no default value; an absent one yields
   `AwaitingCredentials`, never a placeholder.
 
-**Does not:** make HTTP calls (host transport), store `request_xml` (it hands the exact bytes back for the
-host to preserve), or choose exttest vs production (host-supplied base URL; no default).
+**Does not:** make HTTP calls, choose a test or production endpoint (profile data plus a host-supplied base
+URL; no default), or know any destination's schema, field names, endpoints or result codes.
 
-**Reading:** the "report at match for a known-hash signal" timing is a reading of 18 U.S.C. §2258A(a), taken
-by the first consumer under its owner's ruling. The crate implements the mechanism and does not assert the law.
+**Reading:** the timing of a report relative to a match is a reading of the applicable reporting statute,
+taken by the first consumer under its owner's ruling. The crate implements the mechanism and asserts no law.
 
-**Replaces (first consumer, see §6):** its planned XML layer, NCMEC client and the state-machine half of the
-drain.
+**Replaces (first consumer, see section 6):** its planned destination client, document layer and the
+state-machine half of its drain, as a profile plus this generic layer.
 
 ### 3.5 Layer 5: classifier seam, separate from known-hash matching
 
@@ -294,6 +309,32 @@ this trait, later, review-first only (options document §2.6, §2.10).
 **Replaces:** nothing today (the classifier source is "later" in the first consumer's documents). It exists now
 so Lightbulb/Fuel integrate against the same boundary rather than inventing a second one.
 
+### 3.6 Profiles: where destination and provider specifics live
+
+A **profile** carries everything that identifies a specific destination or hash-match provider: its schema, field
+mapping, endpoints, result codes, and the human-readable labels of its credential slots. None of it is in this
+repository, in any file, test name, comment or commit; CI enforces that (section 8).
+
+| | |
+|---|---|
+| **Destination profile** | implements `ReportDestination` (section 3.4) |
+| **Provider profile** | implements `ProviderProtocol` (section 3.2) |
+| **Form** | Rust code in a private companion crate, or data files supplied by the operator at runtime for the parts that are pure data (labels, endpoint templates, field maps) |
+| **Proposed home** | a private repository `ThinkersJournal/SafeImage-profiles` (a crate that depends on this one and exports profiles); operators who cannot use it supply their own profile crate or files. The first consumer and this lane agree the choice (Q9) |
+| **Vendored schemas** | live only with the profile, never here; their licences are recorded there |
+
+**Asking for credentials without naming anyone.** The crate exposes:
+- `credential_slots()` from each *loaded* profile: `CredentialSlot { key, kind: Secret | Text | Url, required }`
+  plus an optional `label` that only the profile supplies;
+- a setup/doctor helper that renders generic prompts from them, e.g. *"Credentials for reporting destination
+  `<id>`, slot `<key>` (your registration documents say what to enter)"*, where `<id>` is the operator's own
+  label. A profile's `label`, when loaded, replaces the generic text, so a specific name appears only where
+  the operator already holds the profile;
+- the same mechanism for provider profiles.
+
+A build with no profile loaded prompts for nothing and reports `no destinations configured`, a distinct and
+loud state: an unconfigured crate must not look like a clean one.
+
 ---
 
 ## 4. What stays in the applications
@@ -306,7 +347,7 @@ so Lightbulb/Fuel integrate against the same boundary rather than inventing a se
 | Scheduling and queues, alarm delivery (banner, email), rollout flags | host runtime |
 | Admin routes, review UI, user-facing responses (503/422 text), privacy-policy wording | product |
 | Moderation policy: bans, terminate, appeals, account holds | product and legal position |
-| Secrets, reporter identity, exttest-vs-production selection | the operator's |
+| Secrets, reporter identity, test-vs-production selection | the operator's |
 | The provider disclosure sentence and any public statement about the provider | the operator's terms |
 
 ---
@@ -345,8 +386,8 @@ Agreed with the Community lane before any code moves; this section is the SafeIm
    against these.
 2. **Port PDQ into layer 1 (this is Community US1, done here).** Same vetting steps (pin upstream SHA, read
    each file's header, licence verbatim, `NOTICE` updated in the same change). Fixtures from generated images.
-3. **Layer 4's pure half** (XML builder, response parser, step function), replacing plan Tasks 4 and 5's
-   parser and client logic, with the Community supplying the exttest run.
+3. **Layer 4's generic half** (`ReportDestination`, `Step`, answer enum, backoff) here, and the first
+   destination profile in the profiles repository, with the Community supplying the test-environment run.
 4. **Layer 3's pure half** last, because it is coupled to the Community's still-moving case schema (it has
    revision 3 plus amendments and no code). Do not extract it from a schema that is still changing.
 5. Layer 5 is a trait and a token type; it can land any time and costs nothing to the Community.
@@ -403,9 +444,10 @@ that and re-reads the terms at each release.
 |---|---|---|---|
 | Q1 | **Decided 2026-10-10 (PM):** sans-I/O core, with a wasm-bindgen build of the pure layers for the TypeScript consumer; proof is the consumer's workerd gate (Q7). Option A (crate on the decoder service) stays available. | PM | - |
 | Q2 | Does the provider accept hash-only lookup with multi-variant arrays, and does it match rotations itself? (Community US3's own implementer check.) | Community lane via the provider's API document | `MatchRequest` shape: one hash or eight |
-| Q3 | Does the NCMEC hash-sharing credential exist and carry PDQ? Decides whether `ListMatcher` ships in 0.1.x or later | CireSnave, via the PM's board | `ListMatcher` priority only |
+| Q3 | *Withdrawn from this repository on 2026-10-10; kept in the operator's private notes.* | - | - |
 | Q4 | Which crate-internal licence mix for Meta-derived files (BSD-3-Clause kept per file, rest MIT OR Apache-2.0)? Proposed as in `NOTICE` | PM | step 2 of §6 |
 | Q5 | Does Lightbulb need layer 5's `ScreenedFrame` token at the API boundary, or at its request handler only? | Lightbulb lane | layer 5's final shape |
 | Q6 | **Resolved by both lanes:** sans-I/O core only in 0.1.x; no `async` driver or transport-bound matcher until a consumer asks | - | - |
 | Q7 | Does a workerd load of the WASM build pass the consumer's workerd gate? Needed before option B is chosen over A | Community lane (proof) | Q1 |
 | Q8 | The crate is `publish = false` in a private repo, while the first consumer is public and its rule is "published versions only". Adoption steps 3 to 5 of §6 cannot merge there until a registry (crates.io or otherwise) is chosen | PM, CireSnave via the board | adoption by the consumer, not the crate's own steps 1 to 3 |
+| Q9 | Home and form of profiles (section 3.6): private companion repository, operator-supplied files, or both; and how the first consumer (public) obtains the profile crate, given Q8 | PM, CireSnave via the board, with the Community lane | adoption of layer 4 and of any provider client |

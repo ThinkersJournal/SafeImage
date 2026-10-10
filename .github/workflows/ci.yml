@@ -82,7 +82,11 @@ jobs:
           # Positive controls: the scan must see a planted vendor name and a planted key header.
           printf 'ara%shnid\n' c > "$RUNNER_TEMP/c1.txt"
           printf -- '-----BEGIN %s PRIVATE KEY-----\n' RSA > "$RUNNER_TEMP/c2.txt"
-          grep -q -i -E -f "$pats" "$RUNNER_TEMP/c1.txt"
+          printf 'nc%sec\n' m >> "$RUNNER_TEMP/c1.txt"
+          printf 'cybe%stip\n' r >> "$RUNNER_TEMP/c1.txt"
+          printf 'i%sf\n' w >> "$RUNNER_TEMP/c1.txt"
+          printf 'photo%sna\n' d >> "$RUNNER_TEMP/c1.txt"
+          test "$(grep -c -i -E -f "$pats" "$RUNNER_TEMP/c1.txt")" -eq 5
           grep -q -i -E -f "$pats" "$RUNNER_TEMP/c2.txt"
           if git ls-files -z -- . ':(exclude).github/forbidden-patterns.txt' \
              | xargs -0 grep -n -i -E -f "$pats"; then
