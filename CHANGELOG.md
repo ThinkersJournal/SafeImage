@@ -4,6 +4,17 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.2.1] - 2026-10-10
+
+### Added
+- `safeimage-wasm` (workspace member): raw WebAssembly exports for layer 1. No imports, no
+  generated glue; `si_alloc`, `si_free`, `si_pdq`, `si_pdq_dihedral`, `si_abi_version`; typed
+  negative error codes; panics abort. Output layout documented in `wasm/src/lib.rs`.
+- `Hash256::to_bytes` (32 bytes, word 0 first, little-endian).
+- CI job `WASM module ...`: builds the module, checks it has no imports and the expected exports,
+  runs it under Node against the reference fixtures bit for bit, and uploads it as an artifact.
+- `docs/provenance/pdq-vetting.md` section 8: upstream `pdq/wasm` read and credited, not used.
+
 ## [0.2.0] - 2026-10-10
 
 ### Added

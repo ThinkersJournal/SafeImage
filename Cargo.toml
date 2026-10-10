@@ -1,6 +1,6 @@
 [package]
 name = "safeimage"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.91"
 description = "Known-image matching, evidence handling and report building for platforms that accept image uploads."
@@ -9,6 +9,17 @@ repository = "https://github.com/ThinkersJournal/SafeImage"
 readme = "README.md"
 # Not published until the PM and CireSnave say so; see docs/DESIGN.md section 9.
 publish = false
+
+[workspace]
+members = [".", "wasm"]
+
+[profile.release]
+# A panic must never unwind across the WASM boundary: abort (a trap) instead.
+panic = "abort"
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
 
 [dependencies]
 libm = "0.2.16"

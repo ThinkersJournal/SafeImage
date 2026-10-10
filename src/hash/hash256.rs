@@ -62,6 +62,16 @@ impl Hash256 {
         self.w
     }
 
+    /// The 32-byte form: words `w[0]` to `w[15]` in order, each little-endian. This is the layout
+    /// the WASM binding writes; it is **not** the text order of [`Hash256::to_hex`].
+    pub fn to_bytes(&self) -> [u8; 32] {
+        let mut out = [0u8; 32];
+        for (i, word) in self.w.iter().enumerate() {
+            out[i * 2..i * 2 + 2].copy_from_slice(&word.to_le_bytes());
+        }
+        out
+    }
+
     /// Bit `k` (taken modulo 256, as upstream does).
     pub fn get_bit(&self, k: usize) -> bool {
         (self.w[(k & 255) >> 4] >> (k & 15)) & 1 == 1

@@ -36,6 +36,27 @@ MUTANTS = [
 ]
 
 
+WASM_MUTANTS = [
+    ("wasm quality byte position", "wasm/src/lib.rs", "out[32] = result.quality;", "out[31] = result.quality;"),
+    ("wasm dihedral stride", "wasm/src/lib.rs", "out[i * 32..i * 32 + 32].copy_from_slice(&h.to_bytes());", "out[i * 32..i * 32 + 32].copy_from_slice(&result.hashes[0].to_bytes());"),
+    ("wasm length error code", "wasm/src/lib.rs", "FrameError::LengthMismatch { .. } => ERR_LENGTH_MISMATCH,", "FrameError::LengthMismatch { .. } => ERR_TOO_LARGE,"),
+    ("wasm null-pointer code", "wasm/src/lib.rs", "pub const ERR_NULL_POINTER: i32 = -4;", "pub const ERR_NULL_POINTER: i32 = -5;"),
+    ("wasm byte order", "src/hash/hash256.rs", "word.to_le_bytes()", "word.to_be_bytes()"),
+]
+
+
+def run_wasm_check():
+    import tempfile
+    frames = tempfile.mkdtemp()
+    env = dict(__import__("os").environ, SAFEIMAGE_FRAMES_DIR=frames)
+    b = subprocess.run(["cargo", "build", "-p", "safeimage-wasm", "--release", "--target", "wasm32-unknown-unknown", "--quiet"], cwd=ROOT, capture_output=True, text=True)
+    if b.returncode != 0:
+        return False  # a mutant that does not build is "caught" only trivially; report it as such below
+    subprocess.run(["cargo", "test", "--quiet", "--test", "write_frames", "--", "--ignored"], cwd=ROOT, env=env, capture_output=True, text=True)
+    r = subprocess.run(["node", "wasm/test.mjs", "target/wasm32-unknown-unknown/release/safeimage_wasm.wasm", frames, "tests/fixtures/reference.txt"], cwd=ROOT, capture_output=True, text=True)
+    return r.returncode == 0
+
+
 def run_tests():
     r = subprocess.run(["cargo", "test", "--quiet"], cwd=ROOT, capture_output=True, text=True)
     return r.returncode == 0
@@ -59,7 +80,24 @@ def main():
         print(("SURVIVED    " if ok else "killed      ") + name)
         if ok:
             survived.append(name)
-    print(f"\n{len(MUTANTS) - len(survived)} of {len(MUTANTS)} killed")
+    for name, rel, old, new in WASM_MUTANTS:
+        path = ROOT / rel
+        original = path.read_text(encoding="utf-8")
+        count = original.count(old)
+        if count != 1:
+            print(f"NOT APPLIED  {name}: anchor occurs {count} times in {rel}")
+            survived.append(name + " (not applied)")
+            continue
+        try:
+            path.write_text(original.replace(old, new), encoding="utf-8", newline="\n")
+            ok = run_wasm_check()
+        finally:
+            path.write_text(original, encoding="utf-8", newline="\n")
+        print(("SURVIVED    " if ok else "killed      ") + name)
+        if ok:
+            survived.append(name)
+    total = len(MUTANTS) + len(WASM_MUTANTS)
+    print(f"\n{total - len(survived)} of {total} killed")
     if survived:
         print("survivors / not applied:", ", ".join(survived))
         sys.exit(1)

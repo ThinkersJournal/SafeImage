@@ -103,3 +103,28 @@ Not in scope, and why:
 - That the reference at this SHA matches the SHA the consumer's earlier documents read (they read `main` on
   2026-10-07 and did not record a commit). Section 4 item 1 is a place they differ.
 - Anything about the legal effect of the licence beyond its words. No attorney has read it.
+
+## 8. Upstream `pdq/wasm` (S2-2): read, credited, not used
+
+Read at the same pin on 2026-10-10 to inform the WebAssembly artifact. **Nothing was copied.**
+
+| File | Blob SHA | What it is |
+|---|---|---|
+| `pdq/wasm/README.md` | `3256342ebe38161fa3e0460cb163dd2658102949` | build and test instructions for a browser demo |
+| `pdq/wasm/Makefile` | `fb5ad1274d16c43527c2869ae131dce90753865b` | builds the C++ through the emscripten Docker image |
+| `pdq/wasm/scripts/pdq.js` | `343d03317c5bfa69426bd23e75c93eebfca8c4e8` | browser glue: decoding via a WASM ImageMagick, MD5 via a WASM library; `Copyright (c) Meta Platforms, Inc. and affiliates.` |
+| `pdq/wasm/server.js`, `index.html`, `package.json` | `d0adfef0...`, `010c0308...`, `daed2eed...` | demo server and page; `package.json` says `"license": "ISC"` for its own metadata |
+| `pdq/wasm/test/**` | (tree `d5e84406...`) | .NET Selenium driver and `PDQMD5TestData.csv` |
+| `pdq/wasm/images/bg.jpg` | `97863adc9563041d2c0e4283a4951864df94c376` | page background image |
+
+Findings:
+1. Upstream's WASM is the **C++ compiled with emscripten**, "built with some modifications to the C++
+   code" (its README), for a browser demo. SafeImage's module is built from the Rust port instead, with no
+   emscripten glue; the upstream build is therefore not used or reproduced.
+2. The README states that the images in that package "are provided only for Open-Source testing only and
+   cannot be used for any other purposes, other than the testing of this code". That is a stronger
+   restriction than the root licence and confirms section 5: **no upstream image is used.**
+3. `PDQMD5TestData.csv` pairs those restricted images with expected hashes. It is not used; the values are
+   a function of images this repository must not contain.
+4. The upstream demo decodes in the browser with a WASM ImageMagick. SafeImage's module takes decoded RGB
+   and does no decoding, which matches the consumer's decoder-service design.
