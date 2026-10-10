@@ -1,0 +1,20 @@
+[package]
+name = "safeimage-wasm"
+version = "0.2.1"
+edition = "2024"
+rust-version = "1.91"
+description = "Raw WebAssembly exports for SafeImage layer 1 (PDQ): bytes in, bytes out, no imports."
+license = "(MIT OR Apache-2.0) AND BSD-3-Clause"
+repository = "https://github.com/ThinkersJournal/SafeImage"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+safeimage = { path = ".." }
+
+[lints.rust]
+# The exports below take raw pointers from the host; each unsafe block is justified in place.
+unsafe_code = "deny"
+missing_docs = "warn"

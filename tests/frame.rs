@@ -121,3 +121,15 @@ fn identical_frames_are_distance_zero_and_a_changed_frame_is_not() {
     assert_eq!(pdq(&fa).hash.hamming_distance(&pdq(&fa).hash), 0);
     assert!(pdq(&fa).hash.hamming_distance(&pdq(&fb).hash) > 0);
 }
+
+#[test]
+fn to_bytes_is_word_zero_first_little_endian() {
+    use safeimage::hash::Hash256;
+    let mut w = [0u16; 16];
+    w[0] = 0x0201;
+    w[15] = 0xBEEF;
+    let b = Hash256::from_words(w).to_bytes();
+    assert_eq!(&b[..2], &[0x01, 0x02]);
+    assert_eq!(&b[30..], &[0xEF, 0xBE]);
+    assert_eq!(b.len(), 32);
+}

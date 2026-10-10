@@ -56,6 +56,34 @@ jobs:
       - name: cargo build --lib --target wasm32-unknown-unknown
         run: cargo build --lib --target wasm32-unknown-unknown
 
+  wasm-artifact:
+    name: WASM module (no imports, bit-exact against the reference fixtures)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust with the wasm32 target
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - name: Build the module
+        run: cargo build -p safeimage-wasm --release --target wasm32-unknown-unknown
+
+      - name: Write the synthetic frames
+        run: SAFEIMAGE_FRAMES_DIR="$RUNNER_TEMP/frames" cargo test --test write_frames -- --ignored
+
+      - name: Check the module (imports, exports, fixtures, error codes)
+        run: node wasm/test.mjs target/wasm32-unknown-unknown/release/safeimage_wasm.wasm "$RUNNER_TEMP/frames" tests/fixtures/reference.txt
+
+      - name: Upload the module
+        uses: actions/upload-artifact@v4
+        with:
+          name: safeimage-wasm-${{ github.sha }}
+          path: target/wasm32-unknown-unknown/release/safeimage_wasm.wasm
+          if-no-files-found: error
+
   msrv:
     name: MSRV (rust-version in Cargo.toml)
     runs-on: ubuntu-latest
