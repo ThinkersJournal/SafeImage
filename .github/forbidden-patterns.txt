@@ -5,11 +5,11 @@
 # The hash-match provider's name may not appear in any file, test name or commit
 # of this repository (its terms allow one exact disclosure sentence only, and
 # that sentence lives in the consuming application's own documents).
-arachni[d]
-projectarac[h]nid
+ara[c]hnid
+projectara[c]hnid
 c3[p]\b
-canadian centre for child
-shield\.project
+canadian cent[r]e for child
+shield\.proj[e]ct
 # Credentials and key material.
 -----BEGIN [A-Z ]*PRIVATE KEY-----
 gh[pousr]_[A-Za-z0-9]{30,}
