@@ -19,7 +19,8 @@ belongs in one reviewed crate rather than being rebuilt inside each application:
    providers, with credentials supplied by the operator.
 3. **Evidence and review**: evidence states, preservation clock and a
    two-person-rule workflow, over pluggable storage.
-4. **Reports**: building and filing NCMEC CyberTipline reports.
+4. **Reports**: building and filing reports to the destinations an operator is registered with, using
+   credentials the operator holds with each. Destination specifics are profiles kept outside this repository.
 5. **Classifier seam**: a separate path for model-based screening, never mixed
    with known-hash matching.
 
