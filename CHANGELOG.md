@@ -4,6 +4,19 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.2.5] - 2026-10-10
+
+### Added
+- Layer 3 (S2-5), `evidence`: plain records and pure functions, no storage assumed. The evidence
+  state table (upload-scan design 5.7, 8 transitions, every other pair refused) and the derived case
+  state; `TwoPeople` (refuses equal ids); review (`confirm`, `clear` with the per-kind approval rule);
+  evidence legal holds (two people, with a reason); hold-release checks (an evidence hold is never
+  released before the end, even by two people); destruction **recorded** with no delete capability
+  anywhere, after which a case refuses every write; the expiry reaper's eligibility; and
+  `preserve_until` (every send counts, never earlier, 366 days in one named function).
+- 23 more hand mutations (80 native + 5 WASM-boundary), all killed.
+- All five layers of the design now exist.
+
 ## [0.2.4] - 2026-10-10
 
 ### Added

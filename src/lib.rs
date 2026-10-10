@@ -1,7 +1,7 @@
 //! SafeImage: known-image matching, evidence handling and report building.
 //!
-//! Layers 1 ([`hash`]), 2 ([`matcher`]), 4 ([`report`]) and 5 ([`classifier`], with the [`screening`]
-//! join point) are implemented. The evidence layer is described in `docs/DESIGN.md` and arrives per
+//! All five layers are implemented: [`hash`] (1), [`matcher`] (2), [`evidence`] (3), [`report`] (4)
+//! and [`classifier`] (5, with the [`screening`] join point). See `docs/DESIGN.md` and
 //! `docs/PLAN-step2.md`.
 
 #![no_std]
@@ -9,6 +9,7 @@
 extern crate alloc;
 
 pub mod classifier;
+pub mod evidence;
 pub mod hash;
 pub mod matcher;
 pub mod report;
