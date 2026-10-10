@@ -62,6 +62,7 @@ pub struct ClassifierSignal {
 
 /// Why a [`ClassifierSignal`] could not be built.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum SignalError {
     /// The score is NaN, infinite, or outside 0.0 to 1.0.
     ScoreOutOfRange,
@@ -114,6 +115,7 @@ impl ClassifierSignal {
 
 /// Why a classifier could not answer.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ClassifierError {
     /// The model is unavailable or timed out.
     Unavailable,

@@ -212,7 +212,7 @@ host adapter exists to test them against.
 | Destruction | `begin_destruction_on_request` (two people, with the request reference), `reaper_eligibility`, `begin_destruction_expired`; the case then refuses every write. **Recorded only: no function in the crate deletes anything** (a test scans the sources) |
 | Clock | `preserve_until(match_at, decided, &[ReportClock])`, `preservation_period_secs()` (366 days) |
 
-**Interpretation to confirm.** The ruling "a CSAM-kind hold is non-releasable before `preserve_until`
+**Reading (confirmed by the PM, 2026-10-10; it is also what the written spec says, so it is a reading, not an exception).** The ruling "a CSAM-kind hold is non-releasable before `preserve_until`
 even by two people" is applied to the **evidence-key** hold. The **serving-key** hold is released at a
 CLEAR, as the rev-3 spec's P2 and section 7.2 step 2 require, but only on a cleared case and only once
 the evidence copies are held and verified. Applying the ruling to the serving key would stop a clear
@@ -474,6 +474,7 @@ that and re-reads the terms at each release.
 | Q7 | **Passed 2026-10-10** (Community lane, real workerd via vitest-pool-workers, `CompiledWasm`): synchronous `Instance`, no imports, exact exports, 18 reference frames bit-exact, error codes returned with no trap, no memory growth over 20 dihedral calls at 512x512; about 10 ms per call on a local `wrangler dev` (at the free plan CPU cap), 25.9 KiB upload. Option B is viable; the binding needed no change. Not tested: frames above 512 px, SIMD or other targets | Community lane | - |
 | Q8 | The crate is `publish = false` in a private repo, while the first consumer is public and its rule is "published versions only". Adoption steps 3 to 5 of §6 cannot merge there until a registry (crates.io or otherwise) is chosen | PM, CireSnave via the board | adoption by the consumer, not the crate's own steps 1 to 3 |
 | Q9 | Home and form of profiles (section 3.6): private companion repository, operator-supplied files, or both; and how the first consumer (public) obtains the profile crate, given Q8 | PM, CireSnave via the board, with the Community lane | adoption of layer 4 and of any provider client |
+| Q10 | How a TypeScript consumer obtains the built WebAssembly module, given `safeimage-wasm` is **not** published to crates.io (it holds the only `unsafe` in the repository): an npm package of the CI artifact, or vendoring the `.wasm` with its SHA-256 recorded. Either needs the artifact's provenance (the CI run and the commit) to be checkable | CireSnave, via the PM's board | the consumer's adoption of option B |
 
 ---
 

@@ -33,13 +33,17 @@ jobs:
         run: cargo fmt --check
 
       - name: cargo clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
       - name: cargo build
         run: cargo build --all-targets
 
       - name: cargo test
-        run: cargo test --no-fail-fast
+        run: cargo test --workspace --all-features --no-fail-fast
+
+      # Fails loudly (rather than skipping) if the feature-gated reference test cannot run.
+      - name: reference fixtures ran
+        run: cargo test --test reference --features reference-support
 
   wasm-build:
     name: Builds for wasm32 (no_std core)

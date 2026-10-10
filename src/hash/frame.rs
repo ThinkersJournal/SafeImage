@@ -19,6 +19,7 @@ pub struct Frame<'a> {
 
 /// Why a [`Frame`] could not be built.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum FrameError {
     /// Width or height is zero.
     ZeroDimension,

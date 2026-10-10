@@ -1,6 +1,6 @@
 [package]
 name = "safeimage"
-version = "0.2.5"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.91"
 description = "Known-image matching, evidence handling and report building for platforms that accept image uploads."
@@ -23,6 +23,14 @@ strip = true
 
 [dependencies]
 libm = "0.2.16"
+
+[features]
+# Exposes intermediate values to the reference-fixture tests. Not API; not for consumers.
+reference-support = []
+
+[[test]]
+name = "reference"
+required-features = ["reference-support"]
 
 [lints.rust]
 unsafe_code = "forbid"

@@ -17,6 +17,7 @@ pub enum HashKind {
 
 /// Why a [`MatchRequest`] could not be built.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum RequestError {
     /// No hashes were given.
     Empty,
@@ -75,6 +76,7 @@ impl MatchRequest {
 
 /// HTTP method of a [`HttpRequestSpec`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum HttpMethod {
     /// GET.
     Get,
@@ -109,6 +111,7 @@ pub struct HttpResponseSpec {
 
 /// Why a profile could not build a request.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ProtocolError {
     /// The request has a hash kind this profile does not support.
     UnsupportedHashKind,

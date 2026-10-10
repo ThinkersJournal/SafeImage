@@ -34,5 +34,13 @@ Median selection routine (src/hash/torben.rs: Rust port)
              implementation by N. Devillard. This code in public domain."
   Credit:    Torben Mogensen (algorithm), N. Devillard (implementation).
 
+Licence expression. The manifest declares "(MIT OR Apache-2.0) AND BSD-3-Clause".
+Upstream's licence text (src/hash/LICENSE, verbatim, blob 9406c626...) is a BSD
+3-clause licence whose endorsement clause names "Facebook" and its contributors
+rather than "the copyright holder" as the SPDX BSD-3-Clause template does. The
+three clauses are the same in effect; the text is kept verbatim and the SPDX
+identifier is used as the closest name. Revisit only if the registry or a
+licence checker objects.
+
 No upstream test image, data file or hash list is included; fixtures are
 synthetic frames and the reference implementation's outputs for them.

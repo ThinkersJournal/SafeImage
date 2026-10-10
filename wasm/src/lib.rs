@@ -31,6 +31,8 @@ pub const ERR_TOO_LARGE: i32 = -2;
 pub const ERR_LENGTH_MISMATCH: i32 = -3;
 /// A null pointer was passed where bytes are required.
 pub const ERR_NULL_POINTER: i32 = -4;
+/// The frame was refused for a reason this module does not name (a newer core than this table).
+pub const ERR_INVALID_FRAME: i32 = -5;
 
 /// Bytes written by [`si_pdq`].
 pub const PDQ_OUT_LEN: usize = 33;
@@ -76,6 +78,8 @@ fn frame_error_code(e: FrameError) -> i32 {
         FrameError::ZeroDimension => ERR_ZERO_DIMENSION,
         FrameError::TooLarge => ERR_TOO_LARGE,
         FrameError::LengthMismatch { .. } => ERR_LENGTH_MISMATCH,
+        // `FrameError` is non-exhaustive: a reason added later is still an error, never a hash.
+        _ => ERR_INVALID_FRAME,
     }
 }
 

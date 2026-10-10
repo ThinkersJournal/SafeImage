@@ -19,6 +19,7 @@ pub struct Hash256 {
 
 /// Why a hex string is not a [`Hash256`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum HexError {
     /// The text is not exactly 64 characters.
     Length {

@@ -13,6 +13,7 @@ pub struct DestinationId(String);
 
 /// Why a [`DestinationId`] is not acceptable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum IdError {
     /// Empty.
     Empty,
@@ -72,6 +73,7 @@ impl SlotKey {
 
 /// What a slot holds, so a setup screen can mask or validate it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum SlotKind {
     /// A secret (password, token): mask it.
     Secret,
@@ -114,6 +116,7 @@ impl fmt::Debug for BuiltReport {
 
 /// Why a report could not be built.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum BuildError {
     /// A required field is empty. The name is the generic field, never a value.
     MissingField(&'static str),

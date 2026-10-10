@@ -14,6 +14,7 @@ use crate::hash::Hash256;
 
 /// What a profile expects of one of its own recorded responses.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Expect {
     /// A known match of any kind.
     AnyMatch,
