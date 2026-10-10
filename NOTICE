@@ -20,6 +20,8 @@ change that adds such a file.
 PDQ perceptual hash (planned: a Rust port of the reference implementation)
   Upstream:  github.com/facebook/ThreatExchange, directory pdq/
   Licence:   BSD-3-Clause (the repository's root LICENSE)
+  Pinned:    commit 07b82cb6e87b7e0ac7fc2a01d865df5db10ee1f2 (vetting record:
+             docs/provenance/pdq-vetting.md)
   Copyright: Meta Platforms, Inc. and affiliates.
   Note:      The port will be a derived work and keeps Meta's licence for the
              derived files. Meta's name may not be used to endorse or promote
