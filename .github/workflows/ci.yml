@@ -80,7 +80,7 @@ jobs:
           grep -v -E '^(#|$)' .github/forbidden-patterns.txt > "$pats"
           test -s "$pats"
           # Positive controls: the scan must see a planted vendor name and a planted key header.
-          printf 'arachni%s\n' d > "$RUNNER_TEMP/c1.txt"
+          printf 'ara%shnid\n' c > "$RUNNER_TEMP/c1.txt"
           printf -- '-----BEGIN %s PRIVATE KEY-----\n' RSA > "$RUNNER_TEMP/c2.txt"
           grep -q -i -E -f "$pats" "$RUNNER_TEMP/c1.txt"
           grep -q -i -E -f "$pats" "$RUNNER_TEMP/c2.txt"
