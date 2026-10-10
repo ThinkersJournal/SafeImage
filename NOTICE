@@ -1,0 +1,34 @@
+SafeImage
+Copyright (c) 2026 Thinker's Journal
+
+This repository's own code and documentation are licensed MIT OR Apache-2.0
+(see LICENSE-MIT and LICENSE-APACHE). The copyright holder is the organisation,
+as it is in the Thinker's Journal community repository this crate is extracted
+from.
+
+THIRD-PARTY MATERIAL
+====================
+
+As of 0.1.0 this repository contains no third-party source code. The entries
+below record what is planned to be derived from, so that credit and licence
+terms travel with the code when it lands. Each file derived from third-party
+source will carry a header naming its upstream file, the upstream commit SHA,
+and the upstream copyright line, and the upstream licence text will be added
+verbatim in a LICENSE file beside it. This section is updated in the same
+change that adds such a file.
+
+PDQ perceptual hash (planned: a Rust port of the reference implementation)
+  Upstream:  github.com/facebook/ThreatExchange, directory pdq/
+  Licence:   BSD-3-Clause (the repository's root LICENSE)
+  Copyright: Meta Platforms, Inc. and affiliates.
+  Note:      The port will be a derived work and keeps Meta's licence for the
+             derived files. Meta's name may not be used to endorse or promote
+             products derived from it.
+
+Median selection routine (planned: part of the PDQ port)
+  Upstream:  pdq/cpp/hashing/torben.cpp in the repository above
+  Licence:   Public domain, by its own header: "Algorithm by Torben Mogensen,
+             implementation by N. Devillard. This code in public domain."
+  Credit:    Torben Mogensen (algorithm), N. Devillard (implementation).
+
+No other third-party code, data, hash lists or test images are included.
