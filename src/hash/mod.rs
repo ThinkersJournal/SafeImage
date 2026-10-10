@@ -92,6 +92,7 @@ fn luma_buffers(frame: &Frame<'_>) -> (alloc::vec::Vec<f32>, alloc::vec::Vec<f32
     (b1, b2)
 }
 
+#[cfg(feature = "reference-support")]
 #[doc(hidden)]
 pub mod __reference_support {
     //! Not part of the API. Exposes intermediate values so the reference fixtures can compare

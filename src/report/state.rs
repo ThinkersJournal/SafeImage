@@ -47,6 +47,7 @@ pub struct FileProgress {
 
 /// How a report finished, when it did not finish by our own `Finish` step.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum FinishNote {
     /// The destination said it was already finished (an earlier answer was lost). Success.
     AlreadyFinished,
@@ -140,6 +141,7 @@ pub enum Step {
 
 /// Something the host must act on (alarm, case note) that is not a state change.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Event {
     /// The destination refused our credentials. Raise at once.
     AuthRefused,
@@ -336,6 +338,7 @@ pub fn sync_credentials(state: &ReportState, credentials_ready: bool) -> ReportS
 
 /// Why a withdrawal cannot be requested.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum RetractError {
     /// The report is already finished: a withdrawal no longer applies.
     AlreadyFinished,

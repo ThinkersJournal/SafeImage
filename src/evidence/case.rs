@@ -49,6 +49,7 @@ pub struct LegalHold {
 
 /// Why evidence is being destroyed.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum DestructionBasis {
     /// A law-enforcement request to destroy the visual depiction (the statute's own exception).
     /// `request_ref` names the request.
@@ -120,6 +121,7 @@ pub enum ClearApproval {
 
 /// Why a case operation was refused.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum CaseError {
     /// Destruction has begun: the case refuses every other write.
     Destroyed,
@@ -147,6 +149,7 @@ pub enum CaseError {
 
 /// Why the expiry reaper may not destroy a case's evidence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Ineligible {
     /// Undecided: keep everything.
     Undecided,
@@ -342,6 +345,7 @@ pub enum HoldTarget {
 
 /// Why a hold may not be released.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ReleaseRefusal {
     /// The case is not cleared (undecided or confirmed).
     NotCleared,

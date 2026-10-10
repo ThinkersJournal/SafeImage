@@ -120,7 +120,7 @@ def run_wasm_check():
 
 
 def run_tests():
-    r = subprocess.run(["cargo", "test", "--quiet"], cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(["cargo", "test", "--quiet", "--workspace", "--all-features"], cwd=ROOT, capture_output=True, text=True)
     return r.returncode == 0
 
 

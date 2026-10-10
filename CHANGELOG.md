@@ -4,6 +4,25 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.0] - 2026-10-10
+
+### Changed (breaking)
+- Error and informational enums are now `#[non_exhaustive]` (`FrameError`, `HexError`,
+  `RequestError`, `ProtocolError`, `HttpMethod`, `IdError`, `SlotKind`, `BuildError`, `RetractError`,
+  `report::Event`, `FinishNote`, `SignalError`, `ClassifierError`, `CaseError`, `Ineligible`,
+  `ReleaseRefusal`, `DestructionBasis`, `Expect`): a host needs a fallback arm. Safety-relevant
+  enums stay exhaustive on purpose (see the crate docs, with doc tests that pin both policies).
+- `hash::__reference_support` is behind the `reference-support` feature (not default, not API).
+- `safeimage-wasm`: a frame error this table does not name returns `-5` (`ERR_INVALID_FRAME`).
+
+### CI
+- Tests and clippy run with `--all-features`; a separate step fails loudly if the feature-gated
+  reference test cannot run, so it can never be skipped silently.
+
+### Docs
+- The serving-key vs evidence-key hold reading recorded as confirmed; Q10 (how a TypeScript
+  consumer obtains the module); NOTICE explains the licence expression.
+
 ## [0.2.5] - 2026-10-10
 
 ### Added
