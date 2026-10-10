@@ -374,6 +374,13 @@ them. **Design constraint this puts on the crate:** layers 1,
 no `tokio`; time and I/O arrive as arguments. This is a constraint the design adopts now whichever option
 wins, because it is also what makes the layers testable without a host.
 
+**Acceptance criteria for any WASM build** (from the consumer's workerd gate, 2026-10-10; the first code PR
+meets them before option B can be chosen):
+- instantiated from an imported module: the host does not compile WASM from bytes at runtime;
+- synchronous initialisation; no `fetch`, no `new URL(import.meta.url)`, no `node:` imports in the glue;
+- pure bytes in, bytes out; typed errors, never a panic across the boundary;
+- built from `no_std + alloc` layers only (section 3).
+
 ---
 
 ## 6. STEP 2 proposal: first move, interface first
