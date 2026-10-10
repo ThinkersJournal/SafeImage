@@ -4,6 +4,21 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.2.4] - 2026-10-10
+
+### Added
+- Layer 5 (S2-6): `classifier` (`Classifier`, `ClassifierSignal`, `MockClassifier`; imports only the
+  frame type, no conversion to or from a match outcome, three `compile_fail` doc tests) and
+  `screening` (`match_request`, `screen`, `ScreenedFrame`, `ScreenPolicy`): the pre-model screen. A
+  match is `Blocked`, any failure is a `Hold`, only `Clean` allows, and a classifier score can only
+  add a hold.
+- 8 more hand mutations (57 native + 5 WASM-boundary), all killed.
+
+### Docs
+- `docs/DESIGN.md`: new section 11, Known limits (secrets not zeroed on drop, plain strings for
+  personal data in memory, opaque-id two-person check, and others); section 3.5 matches the code;
+  the S2-5 rulings recorded in section 3.3; `docs/PLAN-step2.md` S2-5 rewritten to match them.
+
 ## [0.2.3] - 2026-10-10
 
 ### Added

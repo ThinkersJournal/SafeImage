@@ -71,15 +71,27 @@ time (pre-1.0: a breaking change raises the second number).
 
 ## Task S2-5: layer 3, evidence and two-person workflow (last)
 
-- **Scope:** `EvidenceState` and its transition table, derived case state, `report_may_submit`,
-  `preserve_until`, `TwoPeople`, retention purposes, `MemoryStore`.
-- **Why last:** it follows the consumer's case schema, which is still changing. Start only after the
-  consumer names a schema revision to follow.
+- **Scope (rulings of 2026-10-10, DESIGN section 3.3):** plain persisted record types and pure
+  functions only. `EvidenceState` and its transition table copied from the consumer's upload-scan
+  design section 5.7; the case's evidence state *derived* from its files (failed or missing beats
+  pending beats present); case kind and review outcome as the rev-3 spec names them; `report_may_submit`
+  and `report_file_disposition`; `preserve_until` in one named function using 366 days in seconds
+  (every send counts, never moves earlier); `TwoPeople` for the whole two-person set; hold kinds with
+  a CSAM-kind hold non-releasable before `preserve_until` even by two people; a recorded
+  `DestructionRecorded` after which the case refuses every other write; retention purposes. No store
+  traits, no delete capability, no assumption that the uploader is the media owner.
+- **Authoritative sources (Community lane, 2026-10-10):** specs `2026-10-01-csam-reporting-pipeline-design.md`
+  (case states, report statuses), `2026-10-07-upload-scan-design.md` section 5.7 (evidence states, drain
+  rule), and the consumer's CSAM pipeline implementation plan (same directory family) for column intent only.
 - **Acceptance:**
-  - the transition table is exhaustive and tested against the consumer's table row by row;
-  - `preserve_until` never moves earlier for any added event (property test);
-  - every operation in the two-person set refuses equal identities;
-  - destruction changes no state.
+  - the transition table is exhaustive and tested row by row against the consumer's table, including
+    "no other transition exists" (every unlisted pair refused) and "destruction changes no state";
+  - `preserve_until` never moves earlier for any added event (property test) and is exactly 366 days
+    after the latest of match, every send and every finish; a one-day-off mutant is killed;
+  - every operation in the two-person set refuses equal ids;
+  - a held CSAM-kind hold cannot be released early by one or two people; destruction without a
+    record is impossible by construction;
+  - every rule above has a mutant that is killed.
 
 ## Task S2-6: layer 5, classifier seam (any time)
 

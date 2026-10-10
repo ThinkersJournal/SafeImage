@@ -51,7 +51,7 @@ These are properties of the types, not of documentation. Each has a test in the 
 |---|---|---|
 | I1 | **Fail closed.** A match outcome has a distinct `Unavailable` arm; no function converts it to `Clean`. A caller that cannot scan must hold the image. | Community upload-scan §6.1; provider terms: suspension or outage must never publish |
 | I2 | **A match outranks every other answer** for the same image (any rotation variant, any provider). Ordering: `Match` > `Unavailable` > `Clean`. | upload-scan §3.5 / PM ruling N1 |
-| I3 | **Match data never trains or prompts a model.** No type in layers 2–4 implements a conversion into a classifier input, label or prompt, and layer 5 has no import path from them. | provider terms (no AI use of match data) |
+| I3 | **Match data never trains or prompts a model.** No type in layers 2–4 implements a conversion into a classifier input, label or prompt; the `classifier` module imports only the frame type, and `Classifier::classify` takes only a frame. The `screening` module consumes a match outcome for a decision and never passes it on. | provider terms (no AI use of match data) |
 | I4 | **Known-hash and classifier signals are different types** with no `From` between them. Only a known-hash signal can carry "report at match"; a classifier signal never can. | pipeline §3.1 kinds |
 | I5 | **Credentials are opaque.** Secret wrappers have a redacting `Debug`/`Display`, no `Serialize`, and are never read from the environment or disk by the crate. | provider terms (credentials not shared or logged) |
 | I6 | **No image bytes in errors, logs or `Debug` output.** Frames and files are wrapped in a type that prints length only. | upload-scan §10.2 |
@@ -222,6 +222,24 @@ exists on a trait the host opts into.
 **Does not:** choose a database, assume an object store, or run a scheduler. It ships an in-memory store
 (`MemoryStore`) for tests and examples.
 
+**S2-5 rulings (PM, 2026-10-10), which bound what this layer builds:**
+1. *Storage boundary.* Plain persisted record types and pure transition and decision functions only;
+   the host persists and does the compare-and-set. Store traits only when an adapter exists to test
+   against.
+2. *Schema to follow.* The consumer's written documents as they stand on its `main` at the time of
+   building, copied by name: the rev-3 pipeline spec for case states and report statuses; the
+   upload-scan design section 5.7 for evidence states and the drain rule (rev 3 has none; copy from
+   5.7 only); the plan's DDL only for column intent, never migration numbers. Do not assume the
+   uploader is the media owner: after anonymisation an owner is a bare id.
+3. *"1 year".* `preserve_until` uses 366 days in seconds, in one named function, as an application of
+   the existing rule "where unclear, take the reading that keeps evidence longer". It is not a new
+   legal number; a later ruling changes that one place.
+4. *Destruction and holds.* The crate records a destruction (`DestructionRecorded`; the case then
+   refuses every other write) and has **no delete capability anywhere**; the host deletes bytes.
+   A hold of the CSAM kind is non-releasable before `preserve_until`, even by two people.
+5. *Two people.* `TwoPeople::new(a, b)` fails on equal opaque ids. Known limit: one human with two
+   accounts defeats it; the host must map one human to one id (section 11).
+
 **Stays in the application** (not extracted): the database schema and triggers (storage-level DELETE guards
 are a *belt* under the crate's *braces*), the intake transaction that also hides content and holds accounts,
 the admin routes and UI, alarms and email.
@@ -284,35 +302,30 @@ state-machine half of its drain, as a profile plus this generic layer.
 
 ### 3.5 Layer 5: classifier seam, separate from known-hash matching
 
-**Does:** define where a model-based score enters, and keep it apart.
+**Implemented (S2-6).** Two modules, so the boundary is visible in the file layout:
 
-```rust
-pub trait Classifier {
-    type Error;
-    fn classify(&self, frame: &Frame) -> impl Future<Output = Result<ClassifierSignal, Self::Error>>;
-}
-pub struct ClassifierSignal { score: f32, model: ModelId, threshold_applied: Option<f32> }
-```
+- `classifier`: `Classifier` (a sync trait that takes **only a frame**), `ClassifierSignal` (a score
+  in 0.0 to 1.0, a model label, the model's own threshold if it reports one), `MockClassifier`.
+  This module imports nothing from layers 2 to 4 (a test reads its source to keep it so), and a
+  signal has no conversion to or from a match outcome (two `compile_fail` doc tests, plus a source
+  check that no `From`/`Into` impl exists). So match data cannot reach a classifier through this
+  crate (I3) and a score cannot be filed as a match (I4).
+- `screening`: the one place the two meet, as a pure decision over values the host already has.
+  `match_request` hashes the frame in all eight orientations and holds a frame at or below the
+  quality floor; the host performs the provider exchange; `screen(frame, outcome, signal, policy)`
+  decides. A match is `Blocked` (the frame must not reach a model; the host quarantines and reports
+  under its own rules), any failure is a `Hold`, and only `Clean` yields `Allow` with a
+  `ScreenedFrame` token. A classifier score can only *add* a hold (`ScreenPolicy::classifier_hold_at`,
+  off by default); it never rescues a match or a failure. The match outcome is consumed for the
+  decision; it is never passed to a classifier.
 
-- `ClassifierSignal` has **no** `From`/`Into` to or from `MatchOutcome` (I4) and no `report_at_match`
-  capability. A host that wants "classifier says yes, route to review" writes that mapping itself, in its
-  own code, visibly.
-- No type from layers 2 to 4 is importable here (I3), enforced by feature layout and a `compile_fail` doctest.
-- **Pre-model screening** (Lightbulb, Fuel): `screen(frame, &impl HashMatcher, &impl Classifier) ->
-  Screening`, where `Screening` is `Allow | Hold(reason) | Refuse`. It runs the matcher first, treats
-  `Unavailable` as `Hold` (I1), and passes the classifier signal alongside without merging it. A `Match` or
-  `Hold` means the image **must not be passed to a model**; the type returned from `screen` is the only way
-  to obtain the `ScreenedFrame` token that the model-facing API accepts, so the order is checked by the
-  compiler.
-- Match data never reaches a classifier (I3). A model that *produces* signals (e.g. a safety model hosted by the
-  application) is the application's business; the crate ships no model.
+A model-facing API that takes `&ScreenedFrame` cannot be called with an unscreened frame, because
+the token has private fields and no constructor (a `compile_fail` doc test).
 
-**Why a seam and not an implementation:** training or validating a CSAM classifier needs possession of the
-material, which is excluded for every project here. Providers of such classifiers are vendor products behind
-this trait, later, review-first only (options document §2.6, §2.10).
-
-**Replaces:** nothing today (the classifier source is "later" in the first consumer's documents). It exists now
-so Lightbulb/Fuel integrate against the same boundary rather than inventing a second one.
+**Why a seam and not an implementation:** training or validating a CSAM classifier needs
+possession of the material, which is excluded for every project here. Classifiers are vendor
+products behind this trait, later, review-first only (options document 2.6, 2.10). The crate
+ships no model.
 
 ### 3.6 Profiles: where destination and provider specifics live
 
@@ -463,3 +476,25 @@ that and re-reads the terms at each release.
 | Q7 | **Passed 2026-10-10** (Community lane, real workerd via vitest-pool-workers, `CompiledWasm`): synchronous `Instance`, no imports, exact exports, 18 reference frames bit-exact, error codes returned with no trap, no memory growth over 20 dihedral calls at 512x512; about 10 ms per call on a local `wrangler dev` (at the free plan CPU cap), 25.9 KiB upload. Option B is viable; the binding needed no change. Not tested: frames above 512 px, SIMD or other targets | Community lane | - |
 | Q8 | The crate is `publish = false` in a private repo, while the first consumer is public and its rule is "published versions only". Adoption steps 3 to 5 of §6 cannot merge there until a registry (crates.io or otherwise) is chosen | PM, CireSnave via the board | adoption by the consumer, not the crate's own steps 1 to 3 |
 | Q9 | Home and form of profiles (section 3.6): private companion repository, operator-supplied files, or both; and how the first consumer (public) obtains the profile crate, given Q8 | PM, CireSnave via the board, with the Community lane | adoption of layer 4 and of any provider client |
+
+---
+
+## 11. Known limits (read before relying on this crate)
+
+These are things the crate does **not** do, stated so an operator does not assume otherwise. Each is
+either impossible without `unsafe` or a dependency, outside what a library can see, or a measured
+boundary.
+
+| Limit | Consequence | What the operator does |
+|---|---|---|
+| **Secrets are not zeroed on drop.** `Secret` redacts `Debug`, has no `Display`, `Serialize` or `Clone`, but its bytes remain in memory until the allocator reuses them (zeroing needs `unsafe` or a dependency). | A memory dump of a running process can contain a credential. | Treat the process as the trust boundary; keep dumps and swap protected. |
+| **`Person` and `Address` hold plain strings in memory.** Only their `Debug` output is redacted. | Personal data is in process memory and in anything the host serialises itself. | Do not log or serialise `ReportInput` yourself; build the document through the profile. |
+| **Redaction is of this crate's own output.** | A host that formats a credential or a person's fields into its own log line is not protected. | Log slot keys and status codes, never values. |
+| **Two-person checks compare opaque ids.** | One human with two accounts passes as two people. Nothing in a library can see that. | Map one human to one id in the host's authentication, and audit the mapping. |
+| **A frame whose width and height were swapped but whose byte length still matches cannot be detected.** | A wrongly oriented buffer hashes to a different, wrong value, which can fail to match. | The decoder must report the dimensions of the buffer it actually produced; test it on rotated and flipped inputs. |
+| **Frames up to 16.7 million pixels are accepted.** Working memory is about 8 bytes per pixel on top of the frame. | A large frame can exhaust a small runtime. | Cap the decode size lower in the host (the first consumer caps at 512 pixels). |
+| **The DCT matrix uses `libm` cosine, the reference uses the platform's.** Bit-exact agreement is proven on the fixture frames (the matrix feeds every hash), not for all inputs. | A different compiler or platform is a different fixture run. | Re-run `tests/reference/build.sh` when the toolchain or the pinned reference changes. |
+| **A "no known match" answer is not clearance.** | Nothing here proves an image is acceptable. | Keep the other layers of defence; the duty stays with the operator. |
+| **Retry and backoff numbers are defaults.** | They are the first consumer's pinned values, not a statement about any destination's rules. | Set them from the destination's own documentation. |
+| **No destination or provider is implemented in this repository.** | An unconfigured build reports `NoDestinationsConfigured`; it cannot file or match anything. | Load a profile (section 3.6). |
+| **No legal conclusion is asserted.** | Mechanisms follow readings marked as readings in the first consumer's design; there is no attorney on this portfolio. | The operator owns the legal position. |
