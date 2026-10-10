@@ -197,30 +197,28 @@ state machines and decision functions; the host owns the transaction and the SQL
   equal identities. Classifier-case clearance takes one reviewer, as the pipeline specifies.
 - Retention tags (I8) and an `Evidence` record holding digests, provider details and list versions.
 
-**Does (by trait, host implements).** These are *ports* for a later driver and for the in-memory test store;
-the pure core above never calls them. A host that drives the state machines itself
-(for example from TypeScript through a WASM build) uses the transition functions and ignores the traits.
+**Implemented (S2-5), per the rulings below: plain records and pure functions only.** There are no
+store traits and no in-memory store in 0.x; the host persists a `CaseRecord`, calls a function, and
+writes the returned record with a compare-and-set on what it read (this is how the pipeline's "every
+transition is a guarded write" is met without the crate knowing any SQL). Store traits come when a
+host adapter exists to test them against.
 
-```rust
-pub trait EvidenceStore {           // blobs
-    fn put(&self, key: &EvidenceKey, bytes: Bytes) -> impl Future<Output = Result<(), StoreError>>;
-    fn head(&self, key: &EvidenceKey) -> impl Future<Output = Result<Option<ObjectInfo>, StoreError>>;
-    fn get(&self, key: &EvidenceKey) -> impl Future<Output = Result<Bytes, StoreError>>;
-    // no delete: destruction is a separate, two-person trait method (below)
-}
-pub trait CaseStore {               // records; the host makes each call atomic or wraps a unit of work
-    fn load(&self, id: CaseId) -> impl Future<Output = Result<Option<Case>, StoreError>>;
-    fn save(&self, case: &Case, expected_version: u64) -> impl Future<Output = Result<(), StoreError>>;
-}
-```
+| Area | API |
+|---|---|
+| Evidence states | `EvidenceState`, `EvidenceEvent`, `transition` (the section 5.7 table, 8 transitions, every other pair refused), `case_evidence` (derived, never stored), `report_file_disposition`, `report_may_submit` |
+| People | `ActorId`, `TwoPeople::new` (refuses equal ids) |
+| Review | `CaseRecord`, `CaseKind`, `ReviewOutcome`, `confirm`, `clear` with `ClearApproval` (two people for known-hash and removal-request, one or two for a classifier case, never a sighting) |
+| Holds | `set_evidence_legal_hold`, `lift_evidence_legal_hold` (two people, with a reason), `check_release_hold` for `HoldTarget::ServingKey` and `HoldTarget::EvidenceKey` |
+| Destruction | `begin_destruction_on_request` (two people, with the request reference), `reaper_eligibility`, `begin_destruction_expired`; the case then refuses every write. **Recorded only: no function in the crate deletes anything** (a test scans the sources) |
+| Clock | `preserve_until(match_at, decided, &[ReportClock])`, `preservation_period_secs()` (366 days) |
 
-`save` is optimistic (version check), which is how the pipeline's "every drain transition is a guarded write"
-is expressed without the crate knowing about `UPDATE ... WHERE status = $1`. Destruction under the statute's
-law-enforcement-request exception is a distinct `destroy(case, request_ref, actor_a, actor_b)` that only
-exists on a trait the host opts into.
+**Interpretation to confirm.** The ruling "a CSAM-kind hold is non-releasable before `preserve_until`
+even by two people" is applied to the **evidence-key** hold. The **serving-key** hold is released at a
+CLEAR, as the rev-3 spec's P2 and section 7.2 step 2 require, but only on a cleared case and only once
+the evidence copies are held and verified. Applying the ruling to the serving key would stop a clear
+from ever restoring content.
 
-**Does not:** choose a database, assume an object store, or run a scheduler. It ships an in-memory store
-(`MemoryStore`) for tests and examples.
+**Does not:** choose a database, assume an object store, or run a scheduler.
 
 **S2-5 rulings (PM, 2026-10-10), which bound what this layer builds:**
 1. *Storage boundary.* Plain persisted record types and pure transition and decision functions only;

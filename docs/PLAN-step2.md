@@ -71,6 +71,8 @@ time (pre-1.0: a breaking change raises the second number).
 
 ## Task S2-5: layer 3, evidence and two-person workflow (last)
 
+**Status: implemented (0.2.5).** 23 mutants, all killed. See DESIGN section 3.3.
+
 - **Scope (rulings of 2026-10-10, DESIGN section 3.3):** plain persisted record types and pure
   functions only. `EvidenceState` and its transition table copied from the consumer's upload-scan
   design section 5.7; the case's evidence state *derived* from its files (failed or missing beats
