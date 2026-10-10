@@ -57,7 +57,7 @@ These are properties of the types, not of documentation. Each has a test in the 
 | I6 | **No image bytes in errors, logs or `Debug` output.** Frames and files are wrapped in a type that prints length only. | upload-scan §10.2 |
 | I7 | **Preservation only grows.** The preservation end date is a pure function of recorded events and is monotonic: no event moves it earlier. | pipeline §5.1, P2, P5 |
 | I8 | **Retention has a named purpose.** Match data held by layer 3 carries a purpose tag; storage adapters can enumerate by it. | provider terms (retention limited to purpose; audit and legal retention named) |
-| I9 | **Two-person rule is checked in the crate**, not by the caller: the clearing and release operations take two distinct actor identities or return an error. | pipeline §7.2 |
+| I9 | **Two-person rule is checked in the crate**, not by the caller. One set of operations takes two distinct actor identities or returns an error: CLEAR of a known-hash case, CLEAR of a removal-request case, the `file_without_evidence` decision, setting and lifting an evidence legal hold, and destruction. | pipeline §7.2, §5.3, P7; upload-scan §5.7 |
 
 ---
 
@@ -121,10 +121,7 @@ pub trait ProviderProtocol {
     fn interpret(&self, req: &MatchRequest, resp: &HttpResponseSpec) -> MatchOutcome;
 }
 
-/// Optional `async` feature: a convenience driver, not the contract.
-pub trait HashMatcher {
-    fn lookup(&self, req: &MatchRequest) -> impl Future<Output = MatchOutcome>;
-}
+// An async driver trait (`HashMatcher`) is deliberately NOT in 0.1.x: the first consumer needs none (Q6).
 
 pub struct MatchRequest { hashes: Vec<Hash256> /* 1..=8 variants */, kind: HashKind /* Pdq | Md5 | ... */ }
 
@@ -135,13 +132,18 @@ pub enum MatchOutcome {                      // ordered by strength (I2)
 }
 ```
 
-- `KnownMatch.classification` is an enum the *provider's* vocabulary maps into: `Csam`, `HarmfulAbusive`
-  (never auto-reported by default; see layer 4), plus `Other(String)` kept verbatim so a new provider value is
-  held, not dropped. `match_type: Exact | Near`. Provider-supplied detail is carried as opaque, size-capped
+- `KnownMatch.classification` is an enum the *provider's* vocabulary maps into: `Csam`, `HarmfulAbusive`,
+  plus `Other(String)` kept verbatim so a new provider value is held, not dropped. `match_type: Exact | Near`.
+  **The crate exposes these two facts and nothing more:** whether a near match, or a harmful-abusive
+  classification, becomes a `KnownHash` or `Classifier` case is the host's `KindPolicy` function (the
+  consumer's decisions Q3 and D5), with no default baked in. Provider-supplied detail is carried as opaque, size-capped
   `Vec<MatchDetail>` (matched file digest, list timestamp) because the case file must preserve it (pipeline §3.5).
 - `Unavailable` reasons are a closed enum: `CredentialsRefused`, `Throttled`, `Timeout`, `ServerError`,
   `MalformedResponse`, `TestValueInProduction`, `NotConfigured`, `Disabled`. Each maps to an alarm class in the
-  host; the crate does not alarm.
+  host; the crate does not alarm. `interpret` has two cases that are easy to omit and are each a named
+  test: a **"no known match" answer that carries an exact or near match type** is `MalformedResponse`, and
+  so is any body that does not parse to a documented shape; the provider's **test value** is
+  `TestValueInProduction`.
 - `CleanBasis` records provider, list version (`updated_at`), request time. **`Clean` is "no known match", not
   clearance**: the type's docs say so, and the layer-3 case workflow has no path that treats `Clean` as a
   decision.
@@ -178,19 +180,24 @@ state machines and decision functions; the host owns the transaction and the SQL
   (`Pending | Present | Failed | Missing | FileWithoutEvidence`), case `Kind`
   (`KnownHash | Classifier | RemovalRequest | ModeratorSighting`), `ReviewOutcome`, priority. The
   transition function takes the current state and an event and returns the next state or a typed refusal;
-  there is no setter.
+  there is no setter. The file table is the consumer's upload-scan §5.7, copied rather than re-derived:
+  `Pending→Present`; `Pending→Failed` (inline retries exhausted, or the scheduled tick after 10 minutes);
+  `Present→Missing` (the daily check); `Failed|Missing→Present` (a later upload of the same bytes);
+  `Failed|Missing→FileWithoutEvidence` (**two different admins**); `FileWithoutEvidence→Present`. **Destruction
+  changes no state.** A case's evidence state is *derived* from its files, never stored: any `Failed` or
+  `Missing` beats any `Pending` beats `Present`.
 - `report_may_submit(files)` and `report_file_disposition(state, object_found)` (upload-scan §5.7, ported 1:1).
 - `preserve_until(events) -> Option<Instant>`: `None` means keep everything; otherwise one year after the
   latest of match, every send, every finish (pipeline §5.1, the PM's "every send counts"). Monotonic (I7),
   property-tested.
 - `viewed_by_esp(file)`: derived from "served under this case's grant" or an attested sighting, never from a
   button press (pipeline §3.1).
-- Two-person rule (I9): `clear(case, actor_a, actor_b)` requires distinct identities for known-hash cases and
-  one reviewer for classifier cases, as the pipeline specifies.
+- Two-person rule (I9): each operation in I9's set takes `TwoPeople::new(actor_a, actor_b)`, which fails on
+  equal identities. Classifier-case clearance takes one reviewer, as the pipeline specifies.
 - Retention tags (I8) and an `Evidence` record holding digests, provider details and list versions.
 
-**Does (by trait, host implements).** These are *ports* used by the optional `async` driver and by the
-in-memory test store; the pure core above never calls them. A host that drives the state machines itself
+**Does (by trait, host implements).** These are *ports* for a later driver and for the in-memory test store;
+the pure core above never calls them. A host that drives the state machines itself
 (for example from TypeScript through a WASM build) uses the transition functions and ignores the traits.
 
 ```rust
@@ -239,8 +246,9 @@ tasks. The adapter that persists them remains the application's.
   `apply(report, step_result) -> report`. The host performs the I/O and persists between steps, so a retry
   resumes where it stopped (pipeline §4.2). Backoff (2, 4, 8 … capped at 30 minutes), the deletion window
   rule, and `5102 ⇒ finished` live here.
-- **Report timing is a parameter, not a constant:** `ReportAtMatch: { KnownHash: bool, ... }` supplied by the
-  host. Classifier and removal-request signals are `false` and **cannot** be set true (I4). An operator's
+- **Report timing is a parameter, not a constant, and it is two switches** (the consumer's R1): whether a
+  signal queues a report at the match (`ReportAtMatch`, supplied by the host) and when filing happens (the
+  host's schedule; the crate's step function only says what is due). Classifier and removal-request signals are `false` and **cannot** be set true (I4). An operator's
   ruling to report known-hash matches at match time is *its* configuration value.
 - Credentials and reporter identity are inputs (I5); there is no default value and an absent one yields
   `AwaitingCredentials`, never a placeholder.
@@ -398,5 +406,6 @@ that and re-reads the terms at each release.
 | Q3 | Does the NCMEC hash-sharing credential exist and carry PDQ? Decides whether `ListMatcher` ships in 0.1.x or later | CireSnave, via the PM's board | `ListMatcher` priority only |
 | Q4 | Which crate-internal licence mix for Meta-derived files (BSD-3-Clause kept per file, rest MIT OR Apache-2.0)? Proposed as in `NOTICE` | PM | step 2 of §6 |
 | Q5 | Does Lightbulb need layer 5's `ScreenedFrame` token at the API boundary, or at its request handler only? | Lightbulb lane | layer 5's final shape |
-| Q6 | Sans-I/O core with an optional `async` driver (as drafted in §3.2 to §3.4), or sans-I/O only? Both lanes lean to sans-I/O core; the driver is the open part | SafeImage and Community lanes | whether the `async` feature exists in 0.1.x |
+| Q6 | **Resolved by both lanes:** sans-I/O core only in 0.1.x; no `async` driver or transport-bound matcher until a consumer asks | - | - |
 | Q7 | Does a workerd load of the WASM build pass the consumer's workerd gate? Needed before option B is chosen over A | Community lane (proof) | Q1 |
+| Q8 | The crate is `publish = false` in a private repo, while the first consumer is public and its rule is "published versions only". Adoption steps 3 to 5 of §6 cannot merge there until a registry (crates.io or otherwise) is chosen | PM, CireSnave via the board | adoption by the consumer, not the crate's own steps 1 to 3 |
