@@ -3,8 +3,29 @@
 mod support;
 
 use safeimage::hash::{
-    Frame, FrameError, MAX_FRAME_PIXELS, QUALITY_FLOOR_DEFAULT, pdq, pdq_dihedral,
+    Frame, FrameError, Hash256, MATCH_DISTANCE_DEFAULT, MAX_FRAME_PIXELS, QUALITY_FLOOR_DEFAULT,
+    pdq, pdq_dihedral,
 };
+
+#[test]
+fn the_default_match_distance_is_an_inclusive_hamming_threshold() {
+    // Two hashes differing in exactly `d` bits: the low `d` bits of the first words set.
+    let differing = |d: u32| {
+        let mut w = [0u16; 16];
+        for k in 0..d as usize {
+            w[k / 16] |= 1 << (k % 16);
+        }
+        Hash256::from_words(w)
+    };
+    let zero = Hash256::zero();
+    assert_eq!(MATCH_DISTANCE_DEFAULT, 31);
+    assert_eq!(
+        zero.hamming_distance(&differing(MATCH_DISTANCE_DEFAULT)),
+        MATCH_DISTANCE_DEFAULT
+    );
+    assert!(zero.hamming_distance(&differing(MATCH_DISTANCE_DEFAULT)) <= MATCH_DISTANCE_DEFAULT);
+    assert!(zero.hamming_distance(&differing(MATCH_DISTANCE_DEFAULT + 1)) > MATCH_DISTANCE_DEFAULT);
+}
 
 #[test]
 fn zero_dimensions_are_refused() {

@@ -4,6 +4,20 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.6] - 2026-10-11
+
+### CI
+- Every remaining third-party action is pinned to a full commit SHA with its tag as a comment:
+  `actions/checkout` (v7.0.1) and `actions/upload-artifact` (v7.0.2), the current majors, looked up
+  from upstream (8 uses).
+- `.github/CODEOWNERS`: the maintainer owns every path, including the forbidden-pattern rule file.
+
+### Docs
+- `MATCH_DISTANCE_DEFAULT` and `MockMatcher::always` are documented as deliberate public items.
+
+### Tests
+- Both now have a test that uses them. No behaviour change.
+
 ## [0.3.4] - 2026-10-10
 
 ### Docs

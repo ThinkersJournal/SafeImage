@@ -215,6 +215,16 @@ fn mock_answers_in_order_repeats_the_last_and_records_requests() {
 }
 
 #[test]
+fn an_always_mock_repeats_one_answer() {
+    let outcome = MatchOutcome::Unavailable(Unavailable::Throttled);
+    let mock = MockMatcher::always(outcome.clone());
+    for _ in 0..3 {
+        assert_eq!(mock.lookup(&req()), outcome);
+    }
+    assert_eq!(mock.requests().len(), 3);
+}
+
+#[test]
 fn an_empty_mock_is_not_configured_never_clean() {
     let mock = MockMatcher::new(vec![]);
     assert_eq!(

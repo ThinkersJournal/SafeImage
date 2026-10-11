@@ -18,6 +18,11 @@ pub use hash256::{Hash256, HexError};
 
 /// Meta's recommended match distance: two hashes at or below this are "similar". A provider
 /// applies its own threshold; this is the default for matching a list held locally.
+///
+/// A deliberate public item: the crate itself never applies it. Matching against a locally held
+/// list is the caller's loop over [`Hash256::hamming_distance`], and this names the threshold that
+/// loop should start from, so it is not a literal in every consumer. Exercised in
+/// `tests/frame.rs`.
 pub const MATCH_DISTANCE_DEFAULT: u32 = 31;
 
 /// Meta's recommended quality floor: a hash with quality at or below this should be discarded.
