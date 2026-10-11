@@ -32,6 +32,9 @@ impl MockMatcher {
     }
 
     /// A mock that always answers `outcome`.
+    ///
+    /// A deliberate public item: the one-line form for a downstream test that needs a fixed answer
+    /// and no script. Exercised in `tests/matcher.rs`.
     pub fn always(outcome: MatchOutcome) -> Self {
         Self::new(alloc::vec![outcome])
     }
