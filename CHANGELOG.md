@@ -8,8 +8,8 @@ change raises the second number (0.1.x to 0.2.0).
 
 ### CI
 - Every remaining third-party action is pinned to a full commit SHA with its tag as a comment:
-  `actions/checkout` (v4.4.0) and `actions/upload-artifact` (v4.6.2), looked up from upstream
-  (8 uses; the moving `v4` tag resolved to the same two commits).
+  `actions/checkout` (v7.0.1) and `actions/upload-artifact` (v7.0.2), the current majors, looked up
+  from upstream (8 uses).
 - `.github/CODEOWNERS`: the maintainer owns every path, including the forbidden-pattern rule file.
 
 ### Docs
