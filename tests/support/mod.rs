@@ -24,6 +24,10 @@ pub const FRAMES: &[(&str, u32, u32, u8)] = &[
     ("soft_a24_200x150", 200, 150, 6),
     ("soft_a48_320x240", 320, 240, 7),
     ("soft_a12_96x64", 96, 64, 8),
+    // Above the first consumer's 512 px cap; the last is exactly `MAX_FRAME_PIXELS`.
+    ("large_2048x1536", 2048, 1536, 0),
+    ("large_3000x2001", 3000, 2001, 2),
+    ("cap_4096x4096", 4096, 4096, 1),
 ];
 
 fn xorshift(state: &mut u32) -> u32 {

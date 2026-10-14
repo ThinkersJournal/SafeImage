@@ -4,6 +4,13 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.12] - 2026-10-14
+
+### Tests
+- Reference fixtures gain three large frames (2048 x 1536, 3000 x 2001, 4096 x 4096 = `MAX_FRAME_PIXELS`).
+  The crate and the WebAssembly module match the upstream reference bit for bit on all of them; fixtures regenerated from the
+  pinned reference, additions only.
+
 ## [0.3.11] - 2026-10-14
 
 ### Docs
