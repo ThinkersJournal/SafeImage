@@ -6,7 +6,7 @@ Decisions that are not ours are marked **gate** and name who decides. Nothing he
 ## Where things stand
 
 - Layers 1 to 5 exist, are tested, and are bit-exact against the reference on the fixtures
-  (`docs/DESIGN.md` section 3). `wasm/` exposes layer 1 only (`si_pdq`, `si_pdq_dihedral`).
+  (`docs/DESIGN.md` section 3). `wasm/` exposes layers 1 to 4 (ABI version 4; layer 5 stays Rust only).
 - The repository is already public. What has **not** happened is a release: `safeimage` is
   `publish = false`, and PR #15 (draft, 0.3.7) is the change that removes that line.
 - No consumer depends on the crate yet. Community's adoption steps 3 to 5 wait on the gates below.
@@ -21,7 +21,7 @@ The repository is public; the flip left is "a consumer can depend on a published
 | F2 | Where profiles live and how a public consumer obtains them (Q9) | CireSnave, board 174 | open |
 | F3 | How a TypeScript consumer obtains the WASM: npm package or vendored `.wasm` with SHA (Q10) | CireSnave, board 174 | open |
 | F4 | Written answer on naming the hash-match provider in public text (G4) | CireSnave | open |
-| F5 | Provenance close-out (portfolio rule 6.4a); the derived list is below | this lane, PM at gate | one open item (P1) |
+| F5 | Provenance close-out (portfolio rule 6.4a); the derived list is below | this lane, PM at gate | done: P1 and P2 landed in 0.3.11 |
 | F6 | Merge #15 (`publish = false` removed, package metadata) and publish | PM, from a clean `git archive` of `main` | draft, held |
 
 ### F5: provenance, derived from rule 6.4a against this tree (2026-10-14, `main` 587226a)
@@ -37,12 +37,12 @@ Third-party-derived files: `src/hash/pdq.rs`, `downscale.rs`, `hash256.rs` (Meta
   harness is our own MIT OR Apache-2.0 file and links the unmodified upstream sources at build time;
   `build.sh` verifies each upstream blob SHA before use.
 
-Open:
+Closed in 0.3.11 (kept for the record):
 
 | # | Item | Action |
 |---|---|---|
-| P1 | The vetting record proves equality by outputs (reference fixtures, mutation suite) but has no per-file list of how each port **differs** from its upstream file, which rule 6.4a asks for | Add a "differences from upstream" table per derived file to the vetting record (docs only) |
-| P2 | `NOTICE` still speaks of derived files in the future tense ("will carry") | Reword to present tense in the same PR as P1 |
+| P1 | The vetting record proves equality by outputs (reference fixtures, mutation suite) but has no per-file list of how each port **differs** from its upstream file, which rule 6.4a asks for | Done: `docs/provenance/pdq-vetting.md` section 9 |
+| P2 | `NOTICE` still speaks of derived files in the future tense ("will carry") | Done: `NOTICE` reads in the present tense |
 
 Until F1 to F4 have written answers, nothing in this repository names a provider or a report destination.
 
@@ -55,9 +55,9 @@ Its own plan is the migration table in its `2026-10-10-safeimage-split.md`; the 
 | Step | SafeImage supplies | Exists today | Needs |
 |---|---|---|---|
 | 2 | PDQ in the WASM module | yes (Q7 passed 2026-10-10) | F3 to ship it as an artifact |
-| 3 | Layer 2: `strongest`, request building and interpretation, retry policy | Rust only | a WASM boundary for layer 2 (item A2) |
-| 4 | Layer 4 generic half | Rust only | a WASM boundary for layer 4 (A2); a profile to run it (F2) |
-| 5 | Layer 3 pure half | Rust only | a WASM boundary for layer 3 (A2) |
+| 3 | Layer 2: `strongest`, request building and interpretation, retry policy | Rust, and WASM exports (0.3.13) | F3 to ship it as an artifact; a profile for `request`/`interpret` (F2) |
+| 4 | Layer 4 generic half | Rust, and WASM exports (0.3.14) | F3 to ship it as an artifact; a profile to run it (F2) |
+| 5 | Layer 3 pure half | Rust, and WASM exports (0.3.15) | F3 to ship it as an artifact |
 
 ### Humboldt (Rust)
 
@@ -75,7 +75,7 @@ Items not blocked by F1 to F4 are marked **ready**.
 | A1 | `docs/INTEGRATION.md`: how a host wires the layers (what the host supplies, the call order, failing closed, what the host stores), written for a Rust host and for the WASM host | Both consumers need it before they can adopt; no code change | **ready** |
 | A2 | WASM boundary for layers 2 to 4: a design note first (byte-in, byte-out encoding, typed errors, no panic across the boundary, the acceptance criteria in DESIGN section 5), then the implementation | Community steps 3 to 5 cannot run in a Worker without it | **done** (layers 2 in 0.3.13, 4 in 0.3.14, 3 in 0.3.15) |
 | A3 | Conformance vectors for layers 2 to 4 from the Rust tests, in a form a TypeScript host can replay | Lets Community prove its adoption without editing its own tests | **done** (0.3.16): `wasm/vectors/*.txt` and `wasm/vectors/README.md` |
-| A0 | P1 and P2 above: provenance differences table, `NOTICE` tense | The one open provenance item | **ready** |
+| A0 | P1 and P2 above: provenance differences table, `NOTICE` tense | The one open provenance item | **done** (0.3.11) |
 | A4 | Reference cross-check above 512 px: frames of 2048 x 1536, 3000 x 2001 and 4096 x 4096 (exactly `MAX_FRAME_PIXELS`) added to the fixtures; hash, quality and all eight orientations match the reference bit for bit. The workerd run (Q7) is still untested above 512 px: that is the consumer's gate, not the crate's | Closes the crate-side half of the stated limit | **done** (0.3.12) |
 | A5 | Re-run `tests/reference/build.sh` and the mutation suite at release candidate, record the head SHA | Release evidence | at F6 |
 | A6 | 0.4.0 or 1.0 stability decision: which enums stay exhaustive, what is frozen | Only after a consumer has used the API | after first adoption |
