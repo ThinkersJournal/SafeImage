@@ -128,3 +128,21 @@ Findings:
    a function of images this repository must not contain.
 4. The upstream demo decodes in the browser with a WASM ImageMagick. SafeImage's module takes decoded RGB
    and does no decoding, which matches the consumer's decoder-service design.
+
+## 9. Differences from upstream, per derived file (read 2026-10-14)
+
+Each port was read against its upstream blob at the pinned commit (blob SHAs re-computed with
+`git hash-object` on the fetched files and matched to section 1). Equality of output is proven by the
+reference fixtures and the mutation suite; this section records how the **source** differs.
+
+| Rust file | Upstream | Same | Differs |
+|---|---|---|---|
+| `torben.rs` | `hashing/torben.cpp` | Control flow, comparisons and tie handling line for line; the median rule at the end | Takes a slice, `n` is its length; `int` is `i32`; `/ 2` is `/ 2.0`; upstream's namespaces and `====` banner are dropped, its public-domain statement is kept |
+| `downscale.rs` | `downscaling/downscaling.cpp` | `jarosz_filter_float`, `box1d_float` (four phases), `box_along_rows/cols_float`, `decimate_float` (double arithmetic, truncating cast) | `computeJaroszFilterWindowSize` is `div_ceil`, equal for positive inputs. Indices are `usize`; the subtractions that could underflow cannot, because the window is at most the vector length and the window count never reaches 0 (checked for every dimension of 5 or more). **Not ported:** `fillFloatRGB`, `fillFloatRGBFromGrey`, `fillFloatLumaFromRGB` (one implementation lives in `pdq.rs`), `fillFloatLumaFromGrey`, `scaleFloatLuma`, `scaleFloatRGB` |
+| `pdq.rs` | `hashing/pdqhashing.cpp` | Luma coefficients (float), `MIN_HASHABLE_DIM`, tent filter passes, quality metric, both DCT stages (same accumulation order, `f32`), the seven dihedral block transforms, `pdqBuffer16x16ToBits` | Upstream's DCT matrix is built once by a lambda with the platform `cos`; here `libm::cos` (see DESIGN section 11). The 16-by-64 and 16-by-16 buffers are allocated inside rather than passed in. `pdqHash256FromFloatLuma` and `pdqFloat256FromFloatLuma` are one function. The dihedral function always computes all eight hashes (upstream allows null outputs) and always blurs, as upstream does. Only packed RGB8 is read; strides, `fillFloatLumaFromGrey` and the file and image front ends are not ported |
+| `hash256.rs` | `common/pdqhashtypes.h`, `.cpp` | Bit position (word `(k & 255) >> 4`, bit `k & 15`), word order of the text form (word 15 first), 64 hex digits, hamming distance as a population count of the XOR | The parser is stricter than `sscanf("%04hx")`: exactly 64 ASCII hex digits, nothing else. Added, not upstream: `to_bytes`, `from_words`, `words`. **Not ported:** ordering operators, bitwise operators, `clear`, `setAll`, `flipBit`, `fuzz`, `dump`, `hammingNorm`, and the line and file readers (`fromLineOrDie`, `fromStringOrDie`) |
+| `frame.rs`, `mod.rs` | none | n/a | Original to this repository; no upstream counterpart |
+| `pdqhamming.cpp`, `pdqhashing.h`, `pdqbasetypes.h` | blob-verified by `build.sh` (it compiles the reference), not ported | n/a | The population count is computed arithmetically; upstream's lookup table is not copied. These three were not read line by line for this section |
+
+Not derived from anything upstream: the reference harness (`tests/reference/harness.cpp`, ours, MIT OR
+Apache-2.0) links the unmodified upstream sources at build time and ships none of them.

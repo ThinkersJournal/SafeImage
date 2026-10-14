@@ -12,11 +12,9 @@ THIRD-PARTY MATERIAL
 As of 0.2.0 the files under src/hash/ are hand ports of the third-party sources
 listed below, and keep their licences (src/hash/LICENSE holds Meta's text
 verbatim). Each derived file's header names its upstream file, the pinned
-commit and the upstream copyright line. Each file derived from third-party
-source will carry a header naming its upstream file, the upstream commit SHA,
-and the upstream copyright line, and the upstream licence text will be added
-verbatim in a LICENSE file beside it. This section is updated in the same
-change that adds such a file.
+commit and the upstream copyright line, and the upstream licence text sits
+verbatim in the LICENSE file beside them. This section is updated in the same
+change that adds another file derived from third-party source.
 
 PDQ perceptual hash (src/hash/pdq.rs, downscale.rs, hash256.rs: Rust port)
   Upstream:  github.com/facebook/ThreatExchange, directory pdq/
@@ -24,7 +22,7 @@ PDQ perceptual hash (src/hash/pdq.rs, downscale.rs, hash256.rs: Rust port)
   Pinned:    commit 07b82cb6e87b7e0ac7fc2a01d865df5db10ee1f2 (vetting record:
              docs/provenance/pdq-vetting.md)
   Copyright: Meta Platforms, Inc. and affiliates.
-  Note:      The port will be a derived work and keeps Meta's licence for the
+  Note:      The port is a derived work and keeps Meta's licence for the
              derived files. Meta's name may not be used to endorse or promote
              products derived from it.
 
