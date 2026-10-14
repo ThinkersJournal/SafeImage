@@ -4,6 +4,18 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.9] - 2026-10-14
+
+### Docs
+- `docs/INTEGRATION.md`: what a host supplies, the call order for one upload, failing closed, what to
+  persist, and the current WebAssembly scope.
+
+## [0.3.8] - 2026-10-14
+
+### Docs
+- `ROADMAP.md`: ordered path to the first release and to adoption by Community and Humboldt, with each
+  gate named. 0.3.7 is the held draft PR #15.
+
 ## [0.3.6] - 2026-10-11
 
 ### CI
@@ -40,12 +52,6 @@ change raises the second number (0.1.x to 0.2.0).
 ### Added
 - `examples/end_to_end.rs`: one image through every layer with scripted stand-ins for a provider
   and a destination profile (no network, clock or disk). CI runs it on Linux and Windows.
-
-## [0.3.8] - 2026-10-14
-
-### Docs
-- `ROADMAP.md`: ordered path to the first release and to adoption by Community and Humboldt, with each
-  gate named. 0.3.7 is the held draft PR #15.
 
 ## [0.3.1] - 2026-10-10
 
