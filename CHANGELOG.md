@@ -41,6 +41,12 @@ change raises the second number (0.1.x to 0.2.0).
 - `examples/end_to_end.rs`: one image through every layer with scripted stand-ins for a provider
   and a destination profile (no network, clock or disk). CI runs it on Linux and Windows.
 
+## [0.3.9] - 2026-10-14
+
+### Docs
+- `docs/INTEGRATION.md`: what a host supplies, the call order for one upload, failing closed, what to
+  persist, and the current WebAssembly scope.
+
 ## [0.3.8] - 2026-10-14
 
 ### Docs
