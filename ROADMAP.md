@@ -1,0 +1,67 @@
+# Roadmap
+
+Written against `origin/main` 0.3.6. Order matters; each item is one PR with its own version.
+Decisions that are not ours are marked **gate** and name who decides. Nothing here is a promise of dates.
+
+## Where things stand
+
+- Layers 1 to 5 exist, are tested, and are bit-exact against the reference on the fixtures
+  (`docs/DESIGN.md` section 3). `wasm/` exposes layer 1 only (`si_pdq`, `si_pdq_dihedral`).
+- The repository is already public. What has **not** happened is a release: `safeimage` is
+  `publish = false`, and PR #15 (draft, 0.3.7) is the change that removes that line.
+- No consumer depends on the crate yet. Community's adoption steps 3 to 5 wait on the gates below.
+
+## Path to the first release (the "public flip")
+
+The repository is public; the flip left is "a consumer can depend on a published version".
+
+| # | Step | Gate | Status |
+|---|---|---|---|
+| F1 | Registry and who publishes (Q8) | CireSnave, board 174 | open |
+| F2 | Where profiles live and how a public consumer obtains them (Q9) | CireSnave, board 174 | open |
+| F3 | How a TypeScript consumer obtains the WASM: npm package or vendored `.wasm` with SHA (Q10) | CireSnave, board 174 | open |
+| F4 | Written answer on naming the hash-match provider in public text (G4) | CireSnave | open |
+| F5 | Provenance and vendor items the PM names as open (portfolio rule 6.4a) | PM | not enumerated to this lane |
+| F6 | Merge #15 (`publish = false` removed, package metadata) and publish | PM, from a clean `git archive` of `main` | draft, held |
+
+Until F1 to F4 have written answers, nothing in this repository names a provider or a report destination.
+
+## Adoption
+
+### Community (TypeScript on workerd)
+
+Its own plan is the migration table in its `2026-10-10-safeimage-split.md`; the SafeImage side of each step:
+
+| Step | SafeImage supplies | Exists today | Needs |
+|---|---|---|---|
+| 2 | PDQ in the WASM module | yes (Q7 passed 2026-10-10) | F3 to ship it as an artifact |
+| 3 | Layer 2: `strongest`, request building and interpretation, retry policy | Rust only | a WASM boundary for layer 2 (item A2) |
+| 4 | Layer 4 generic half | Rust only | a WASM boundary for layer 4 (A2); a profile to run it (F2) |
+| 5 | Layer 3 pure half | Rust only | a WASM boundary for layer 3 (A2) |
+
+### Humboldt (Rust)
+
+At `origin/main` of Humboldt the only mentions of SafeImage are in its CI and `deny.toml` (shared job
+shape). No upload surface or requirement for hash matching is documented there, so there is nothing to
+adopt yet. If it gains one, it depends on the crates.io version directly (F6) and needs no WASM.
+Scoping that is Humboldt's lane to start; this item stays open until it does.
+
+## Work in this repository, in order
+
+Items not blocked by F1 to F4 are marked **ready**.
+
+| # | Item | Why | State |
+|---|---|---|---|
+| A1 | `docs/INTEGRATION.md`: how a host wires the layers (what the host supplies, the call order, failing closed, what the host stores), written for a Rust host and for the WASM host | Both consumers need it before they can adopt; no code change | **ready** |
+| A2 | WASM boundary for layers 2 to 4: a design note first (byte-in, byte-out encoding, typed errors, no panic across the boundary, the acceptance criteria in DESIGN section 5), then the implementation | Community steps 3 to 5 cannot run in a Worker without it | after A1 |
+| A3 | Conformance vectors for layers 2 to 4 from the Rust tests, in a form a TypeScript host can replay | Lets Community prove its adoption without editing its own tests | after A2 |
+| A4 | Real-image PDQ cross-check beyond 512 px and non-default targets (DESIGN limit: Q7 did not test frames above 512 px) | Closes the stated limit | **ready**, lower priority |
+| A5 | Re-run `tests/reference/build.sh` and the mutation suite at release candidate, record the head SHA | Release evidence | at F6 |
+| A6 | 0.4.0 or 1.0 stability decision: which enums stay exhaustive, what is frozen | Only after a consumer has used the API | after first adoption |
+
+## Not on this roadmap
+
+- Any hash list, token, key, destination schema or provider endpoint. These are profiles and operator
+  configuration (DESIGN section 3.6), never in this tree.
+- A decoder, an async driver, or an HTTP client (DESIGN Q6).
+- Publishing `safeimage-wasm` to crates.io: it holds the only `unsafe`, and stays `publish = false`.
