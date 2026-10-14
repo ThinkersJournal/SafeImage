@@ -4,6 +4,16 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.13] - 2026-10-14
+
+### Added
+- WebAssembly module (`safeimage-wasm`, ABI version 2): layer 2 exports `si_strongest`,
+  `si_classify_status`, `si_within_cap`, `si_retry_decide` and `si_match_request`, over a hand-rolled
+  versioned binary encoding (`wasm/src/codec.rs`; docs/WASM-BOUNDARY.md section 3). Unknown outcome tags
+  decode to `Unavailable(MalformedResponse)`, never `Clean`; every refusal is a negative code; structured
+  inputs are capped at 4 MiB. Layer 1 exports and layout are unchanged.
+- `wasm/vectors/layer2.txt`: layer 2 vectors generated from the Rust tests and replayed by `wasm/test.mjs`.
+
 ## [0.3.12] - 2026-10-14
 
 ### Tests

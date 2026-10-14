@@ -1,6 +1,6 @@
 # WebAssembly boundary for layers 2 to 4: design note (PROPOSAL)
 
-**Status:** encoding ruled by the PM on 2026-10-14 (section 3); the rest is a proposal for the gate. Docs only; no code in this change. Written against `origin/main`
+**Status:** encoding ruled by the PM on 2026-10-14 (section 3). Layer 2 exports implemented in 0.3.13 (`wasm/src/codec.rs`, `wasm/vectors/layer2.txt`); layers 4 and 3 follow. Written against `origin/main`
 0.3.6. It closes roadmap item A2's design half; the implementation is a separate PR after this is agreed.
 
 ## 1. The problem
