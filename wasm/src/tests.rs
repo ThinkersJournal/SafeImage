@@ -212,8 +212,7 @@ fn vectors_file_is_current() {
     fn hex(b: &[u8]) -> String {
         b.iter().map(|x| format!("{x:02x}")).collect()
     }
-    let mut text =
-        String::from("# layer 2 vectors: <name> <input hex> <expected output hex or error code>\n");
+    let mut text = String::from("# layer 2 vectors. See vectors/README.md for each line kind.\n");
     let all = samples();
     let mut cases: Vec<(String, Vec<MatchOutcome>)> = vec![("empty".into(), vec![])];
     for (i, o) in all.iter().enumerate() {
@@ -231,6 +230,57 @@ fn vectors_file_is_current() {
         ("bad_version", [9u8, 0, 0, 0, 0].to_vec(), ERR_BAD_VERSION),
     ] {
         text.push_str(&format!("strongest_err {name} {} {code}\n", hex(&input)));
+    }
+    for status in [
+        200u32, 204, 299, 301, 401, 403, 408, 429, 500, 503, 504, 70_000,
+    ] {
+        text.push_str(&format!(
+            "classify {status} {}\n",
+            si_classify_status(status)
+        ));
+    }
+    for (len, cap) in [(0usize, 0usize), (10, 10), (11, 10)] {
+        text.push_str(&format!(
+            "within_cap {len} {cap} {}\n",
+            si_within_cap(len, cap)
+        ));
+    }
+    // (name, max_retries, delay_ms, attempts, reason tag, elapsed_ms, deadline_ms)
+    for (name, max, delay, attempts, tag, elapsed, deadline) in [
+        ("timeout_first", 1u32, 250u64, 1u32, 2u32, 100u64, 1000u64),
+        ("server_error_first", 1, 250, 1, 3, 100, 1000),
+        ("timeout_second", 1, 250, 2, 2, 100, 1000),
+        ("throttled", 1, 250, 1, 4, 100, 1000),
+        ("credentials", 1, 250, 1, 5, 100, 1000),
+        ("unknown_tag", 1, 250, 1, 999, 100, 1000),
+        ("past_deadline", 1, 250, 1, 2, 800, 1000),
+        ("two_retries", 2, 50, 2, 2, 10, 1000),
+    ] {
+        text.push_str(&format!(
+            "retry {name} {max} {delay} {attempts} {tag} {elapsed} {deadline} {}\n",
+            hex(&retry_bytes(max, delay, attempts, tag, elapsed, deadline))
+        ));
+    }
+    let req = |n: u32| {
+        let mut v = vec![codec::VERSION];
+        v.extend_from_slice(&n.to_le_bytes());
+        for i in 0..n {
+            v.extend(core::iter::repeat_n(i as u8, 32));
+        }
+        v
+    };
+    for (name, bytes) in [
+        ("one", req(1)),
+        ("eight", req(8)),
+        ("zero", req(0)),
+        ("nine", req(9)),
+        ("truncated", req(2)[..40].to_vec()),
+    ] {
+        let r = match match_request_len(&bytes) {
+            Ok(n) => n as i32,
+            Err(c) => c,
+        };
+        text.push_str(&format!("match_request {name} {} {r}\n", hex(&bytes)));
     }
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/vectors/layer2.txt");
     if std::env::var_os("SAFEIMAGE_WRITE_VECTORS").is_some() {
