@@ -13,13 +13,16 @@ const module_ = new WebAssembly.Module(readFileSync(wasmPath));
 assert.deepEqual(WebAssembly.Module.imports(module_), [], "module must have no imports");
 const exportNames = WebAssembly.Module.exports(module_).map((e) => e.name).sort();
 assert.deepEqual(exportNames, [
-  "memory", "si_abi_version", "si_alloc", "si_classify_status", "si_free", "si_match_request",
-  "si_pdq", "si_pdq_dihedral", "si_retry_decide", "si_strongest", "si_within_cap",
+  "memory", "si_abi_version", "si_alloc", "si_backoff_secs", "si_classify_status",
+  "si_deletion_window_elapsed", "si_free", "si_match_request", "si_pdq", "si_pdq_dihedral",
+  "si_report_apply", "si_report_new", "si_report_next_step", "si_report_request_retract",
+  "si_report_retry_failed", "si_report_sync_credentials", "si_retry_decide", "si_strongest",
+  "si_within_cap",
 ], "unexpected export set");
 
 const inst = new WebAssembly.Instance(module_, {}); // synchronous, nothing to import
 const x = inst.exports;
-assert.equal(x.si_abi_version(), 2);
+assert.equal(x.si_abi_version(), 3);
 
 function call(fn, rgb, w, h, outLen) {
   const inPtr = x.si_alloc(rgb.length);
@@ -144,9 +147,73 @@ assert.equal(x.si_within_cap(11, 10), 0);
   }
 }
 
+// Layer 4: replay wasm/vectors/layer4.txt (generated from the Rust tests).
+// Each call allocates its inputs and an output of input + 1024 bytes (the documented headroom).
+function withBuf(inputs, outCap, fn) {
+  const ptrs = inputs.map((b) => x.si_alloc(b.length));
+  const outPtr = x.si_alloc(outCap);
+  try {
+    inputs.forEach((b, i) => new Uint8Array(x.memory.buffer, ptrs[i], b.length).set(b));
+    const rc = fn(ptrs, outPtr);
+    const out = rc > 0 ? new Uint8Array(x.memory.buffer, outPtr, rc).slice() : new Uint8Array(0);
+    return { rc, out };
+  } finally {
+    inputs.forEach((b, i) => x.si_free(ptrs[i], b.length));
+    x.si_free(outPtr, outCap);
+  }
+}
+const cap4 = (state) => state.length + 1024;
+let vectors4 = 0;
+const l4Url = new URL("./vectors/layer4.txt", import.meta.url);
+for (const line of readFileSync(l4Url, "utf8").split("\n")) {
+  if (!line || line.startsWith("#")) continue;
+  const f = line.split(" ");
+  const kind = f[0];
+  if (kind === "new") {
+    const r = withBuf([], 1024, (_p, o) => x.si_report_new(+f[2], +f[3], o, 1024));
+    assert.deepEqual(r.out, fromHex(f[4]), `new ${f[1]}`);
+  } else if (kind === "next") {
+    const st = fromHex(f[2]);
+    const r = withBuf([st], 64, (p, o) => x.si_report_next_step(p[0], st.length, BigInt(f[3]), o, 64));
+    assert.deepEqual(r.out, fromHex(f[4]), `next ${f[1]}`);
+  } else if (kind === "apply") {
+    const [st, step, ans] = [fromHex(f[2]), fromHex(f[3]), fromHex(f[4])];
+    const c = cap4(st);
+    const r = withBuf([st, step, ans], c, (p, o) =>
+      x.si_report_apply(p[0], st.length, p[1], step.length, p[2], ans.length, BigInt(f[5]), o, c));
+    assert.deepEqual(r.out, fromHex(f[6]), `apply ${f[1]}`);
+  } else if (kind === "sync") {
+    const st = fromHex(f[2]);
+    const r = withBuf([st], cap4(st), (p, o) => x.si_report_sync_credentials(p[0], st.length, +f[3], o, cap4(st)));
+    assert.deepEqual(r.out, fromHex(f[4]), `sync ${f[1]}`);
+  } else if (kind === "retract" || kind === "retry") {
+    const st = fromHex(f[2]);
+    const fn = kind === "retract" ? x.si_report_request_retract : x.si_report_retry_failed;
+    const r = withBuf([st], cap4(st), (p, o) => fn(p[0], st.length, o, cap4(st)));
+    if (/^-/.test(f[3])) assert.equal(r.rc, +f[3], `${kind} ${f[1]}`);
+    else assert.deepEqual(r.out, fromHex(f[3]), `${kind} ${f[1]}`);
+  } else if (kind === "backoff") {
+    assert.equal(x.si_backoff_secs(+f[1]), BigInt(f[2]), `backoff ${f[1]}`);
+  } else if (kind === "window") {
+    assert.equal(x.si_deletion_window_elapsed(BigInt(f[1]), BigInt(f[2]), BigInt(f[3]), BigInt(f[4]), BigInt(f[5])), +f[6]);
+  } else {
+    assert.fail(`unknown vector kind ${kind}`);
+  }
+  vectors4++;
+}
+assert.ok(vectors4 >= 20, "layer 4 vectors present");
+// Every prefix of a valid state is refused with a code, never a trap.
+{
+  const state = fromHex(readFileSync(l4Url, "utf8").split("\n").find((l) => l.startsWith("next s0 ")).split(" ")[2]);
+  for (let n = 0; n < state.length; n++) {
+    const r = withBuf([state.subarray(0, n)], 64, (p, o) => x.si_report_next_step(p[0], n, 0n, o, 64));
+    assert.ok(r.rc < 0, `state prefix ${n}`);
+  }
+}
+
 // Memory is reusable: many round trips leave the module healthy.
 const before = x.memory.buffer.byteLength;
 for (let i = 0; i < 200; i++) call(x.si_pdq, new Uint8Array(64 * 64 * 3).fill(i), 64, 64, 33);
 assert.ok(x.memory.buffer.byteLength <= before + 8 * 1024 * 1024, "memory growth bounded");
 
-console.log(`wasm ok: ${checked} frames bit-exact against the reference fixture, ${vectors} layer 2 vectors, ${exportNames.length} exports, no imports`);
+console.log(`wasm ok: ${checked} frames bit-exact against the reference fixture, ${vectors} layer 2 and ${vectors4} layer 4 vectors, ${exportNames.length} exports, no imports`);

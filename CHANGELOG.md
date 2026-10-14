@@ -4,6 +4,16 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.14] - 2026-10-14
+
+### Added
+- WebAssembly module (ABI version 3): layer 4 exports `si_report_new`, `si_report_next_step`,
+  `si_report_apply`, `si_report_sync_credentials`, `si_report_request_retract`,
+  `si_report_retry_failed`, `si_backoff_secs` and `si_deletion_window_elapsed`, over the same versioned
+  encoding (`wasm/src/report_codec.rs`). An unknown answer tag is handled as transient, never as success;
+  an unknown state or step tag is a refusal. Credentials never cross: the boundary takes a boolean.
+- `wasm/vectors/layer4.txt`, replayed by `wasm/test.mjs`.
+
 ## [0.3.13] - 2026-10-14
 
 ### Added
