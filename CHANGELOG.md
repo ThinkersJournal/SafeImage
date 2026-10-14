@@ -4,6 +4,12 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.17] - 2026-10-14
+
+### Docs
+- `ROADMAP.md`: A0 and F5 marked done (P1 and P2 landed in 0.3.11); the adoption table and the
+  "where things stand" line now say layers 2 to 4 have WASM exports.
+
 ## [0.3.16] - 2026-10-14
 
 ### Tests
