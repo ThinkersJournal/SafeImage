@@ -21,8 +21,28 @@ The repository is public; the flip left is "a consumer can depend on a published
 | F2 | Where profiles live and how a public consumer obtains them (Q9) | CireSnave, board 174 | open |
 | F3 | How a TypeScript consumer obtains the WASM: npm package or vendored `.wasm` with SHA (Q10) | CireSnave, board 174 | open |
 | F4 | Written answer on naming the hash-match provider in public text (G4) | CireSnave | open |
-| F5 | Provenance and vendor items the PM names as open (portfolio rule 6.4a) | PM | not enumerated to this lane |
+| F5 | Provenance close-out (portfolio rule 6.4a); the derived list is below | this lane, PM at gate | one open item (P1) |
 | F6 | Merge #15 (`publish = false` removed, package metadata) and publish | PM, from a clean `git archive` of `main` | draft, held |
+
+### F5: provenance, derived from rule 6.4a against this tree (2026-10-14, `main` 587226a)
+
+Third-party-derived files: `src/hash/pdq.rs`, `downscale.rs`, `hash256.rs` (Meta, BSD-3-Clause),
+`src/hash/torben.rs` (public domain, Mogensen and Devillard). Checked:
+
+- Each carries a header naming the upstream file, the pinned commit and the upstream blob SHA, and the
+  Meta copyright line (`torben.rs` carries the public-domain statement instead, as upstream does).
+- `src/hash/LICENSE` is the upstream licence verbatim: `git hash-object` gives `9406c626...`, the blob
+  recorded in `docs/provenance/pdq-vetting.md`. `NOTICE` lists every derived file and the credit.
+- No upstream image, data file or hash list is in the tree (vetting record section 5). The reference
+  harness is our own MIT OR Apache-2.0 file and links the unmodified upstream sources at build time;
+  `build.sh` verifies each upstream blob SHA before use.
+
+Open:
+
+| # | Item | Action |
+|---|---|---|
+| P1 | The vetting record proves equality by outputs (reference fixtures, mutation suite) but has no per-file list of how each port **differs** from its upstream file, which rule 6.4a asks for | Add a "differences from upstream" table per derived file to the vetting record (docs only) |
+| P2 | `NOTICE` still speaks of derived files in the future tense ("will carry") | Reword to present tense in the same PR as P1 |
 
 Until F1 to F4 have written answers, nothing in this repository names a provider or a report destination.
 
@@ -55,6 +75,7 @@ Items not blocked by F1 to F4 are marked **ready**.
 | A1 | `docs/INTEGRATION.md`: how a host wires the layers (what the host supplies, the call order, failing closed, what the host stores), written for a Rust host and for the WASM host | Both consumers need it before they can adopt; no code change | **ready** |
 | A2 | WASM boundary for layers 2 to 4: a design note first (byte-in, byte-out encoding, typed errors, no panic across the boundary, the acceptance criteria in DESIGN section 5), then the implementation | Community steps 3 to 5 cannot run in a Worker without it | after A1 |
 | A3 | Conformance vectors for layers 2 to 4 from the Rust tests, in a form a TypeScript host can replay | Lets Community prove its adoption without editing its own tests | after A2 |
+| A0 | P1 and P2 above: provenance differences table, `NOTICE` tense | The one open provenance item | **ready** |
 | A4 | Real-image PDQ cross-check beyond 512 px and non-default targets (DESIGN limit: Q7 did not test frames above 512 px) | Closes the stated limit | **ready**, lower priority |
 | A5 | Re-run `tests/reference/build.sh` and the mutation suite at release candidate, record the head SHA | Release evidence | at F6 |
 | A6 | 0.4.0 or 1.0 stability decision: which enums stay exhaustive, what is frozen | Only after a consumer has used the API | after first adoption |
