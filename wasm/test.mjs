@@ -17,12 +17,16 @@ assert.deepEqual(exportNames, [
   "si_deletion_window_elapsed", "si_free", "si_match_request", "si_pdq", "si_pdq_dihedral",
   "si_report_apply", "si_report_new", "si_report_next_step", "si_report_request_retract",
   "si_report_retry_failed", "si_report_sync_credentials", "si_retry_decide", "si_strongest",
-  "si_within_cap",
-], "unexpected export set");
+  "si_within_cap", "si_evidence_transition", "si_case_evidence", "si_report_file_disposition",
+  "si_report_may_submit", "si_preservation_period_secs", "si_preserve_until",
+  "si_case_apply_file_event", "si_case_confirm", "si_case_clear", "si_case_set_hold",
+  "si_case_lift_hold", "si_case_begin_destruction_on_request",
+  "si_case_begin_destruction_expired", "si_case_reaper_eligibility", "si_check_release_hold",
+].sort(), "unexpected export set");
 
 const inst = new WebAssembly.Instance(module_, {}); // synchronous, nothing to import
 const x = inst.exports;
-assert.equal(x.si_abi_version(), 3);
+assert.equal(x.si_abi_version(), 4);
 
 function call(fn, rgb, w, h, outLen) {
   const inPtr = x.si_alloc(rgb.length);
@@ -211,9 +215,99 @@ assert.ok(vectors4 >= 20, "layer 4 vectors present");
   }
 }
 
+// Layer 3: replay wasm/vectors/layer3.txt (generated from the Rust tests).
+const enc = new TextEncoder();
+const l3Url = new URL("./vectors/layer3.txt", import.meta.url);
+const l3 = (inputs, fn) => {
+  // Every input is a Uint8Array; the output buffer is the documented headroom over the first.
+  const cap = inputs[0].length + inputs.reduce((n, b) => n + b.length, 0) + 1024;
+  return withBuf(inputs, cap, (p, o) => fn(p, o, cap));
+};
+const expectBytesOrCode = (r, want, label) => {
+  if (/^-?\d+$/.test(want) && +want < 0) assert.equal(r.rc, +want, label);
+  else assert.deepEqual(r.out, fromHex(want), label);
+};
+let vectors3 = 0;
+for (const line of readFileSync(l3Url, "utf8").split("\n")) {
+  if (!line || line.startsWith("#")) continue;
+  const f = line.split(" ");
+  const kind = f[0];
+  const last = f[f.length - 1];
+  const label = `${kind} ${f[1]}`;
+  const B = (h) => fromHex(h);
+  if (kind === "transition") {
+    const ev = B(f[3]);
+    const r = withBuf([ev], 8, (p) => x.si_evidence_transition(+f[2], p[0], ev.length));
+    assert.equal(r.rc, +last, label);
+  } else if (kind === "disposition") {
+    assert.equal(x.si_report_file_disposition(+f[2], +f[3]), +last, label);
+  } else if (kind === "period") {
+    assert.equal(x.si_preservation_period_secs(), BigInt(f[1]), label);
+  } else if (kind === "preserve") {
+    const c = B(f[4]);
+    const r = withBuf([c], 9, (p, o) => x.si_preserve_until(BigInt(f[2]), +f[3], p[0], c.length, o));
+    assert.equal(r.rc, 9, label);
+    assert.deepEqual(new Uint8Array(r.out), B(last), label);
+  } else if (kind === "file_event") {
+    const [c, e] = [B(f[2]), B(f[4])];
+    const r = l3([c, e], (p, o, cap) => x.si_case_apply_file_event(p[0], c.length, +f[3], p[1], e.length, o, cap));
+    expectBytesOrCode(r, last, label);
+  } else if (kind === "confirm") {
+    const c = B(f[2]);
+    const r = l3([c], (p, o, cap) => x.si_case_confirm(p[0], c.length, BigInt(f[3]), o, cap));
+    expectBytesOrCode(r, last, label);
+  } else if (kind === "clear") {
+    const [c, a] = [B(f[2]), B(f[3])];
+    const r = l3([c, a], (p, o, cap) => x.si_case_clear(p[0], c.length, p[1], a.length, BigInt(f[4]), o, cap));
+    expectBytesOrCode(r, last, label);
+  } else if (kind === "set_hold") {
+    const [c, by, why] = [B(f[2]), B(f[3]), B(f[4])];
+    const r = l3([c, by, why], (p, o, cap) =>
+      x.si_case_set_hold(p[0], c.length, p[1], by.length, p[2], why.length, BigInt(f[5]), o, cap));
+    expectBytesOrCode(r, last, label);
+  } else if (kind === "lift") {
+    const [c, by] = [B(f[2]), B(f[3])];
+    const r = l3([c, by], (p, o, cap) => x.si_case_lift_hold(p[0], c.length, p[1], by.length, o, cap));
+    expectBytesOrCode(r, last, label);
+  } else if (kind === "destroy_req") {
+    const [c, ref, by] = [B(f[2]), B(f[3]), B(f[4])];
+    const r = l3([c, ref, by], (p, o, cap) =>
+      x.si_case_begin_destruction_on_request(p[0], c.length, p[1], ref.length, p[2], by.length, BigInt(f[5]), o, cap));
+    expectBytesOrCode(r, last, label);
+  } else if (kind === "destroy_exp") {
+    const c = B(f[2]);
+    const r = l3([c], (p, o, cap) =>
+      x.si_case_begin_destruction_expired(p[0], c.length, +f[3], BigInt(f[4]), BigInt(f[5]), +f[6], o, cap));
+    expectBytesOrCode(r, last, label);
+  } else if (kind === "eligible") {
+    const c = B(f[2]);
+    const r = withBuf([c], 8, (p) =>
+      x.si_case_reaper_eligibility(p[0], c.length, +f[3], BigInt(f[4]), BigInt(f[5]), +f[6]));
+    assert.equal(r.rc, +last, label);
+  } else if (kind === "release") {
+    const [c, by] = [B(f[2]), B(f[8])];
+    const r = withBuf([c, by], 8, (p) =>
+      x.si_check_release_hold(p[0], c.length, +f[3], +f[4], BigInt(f[5]), BigInt(f[6]), +f[7], p[1], by.length));
+    assert.equal(r.rc, +last, label);
+  } else {
+    assert.fail(`unknown vector kind ${kind}`);
+  }
+  vectors3++;
+}
+assert.ok(vectors3 >= 40, "layer 3 vectors present");
+// Every prefix of a valid case is refused with a code, never a trap.
+{
+  const line = readFileSync(l3Url, "utf8").split("\n").find((l) => l.startsWith("set_hold ok "));
+  const c = fromHex(line.split(" ")[2]);
+  for (let n = 0; n < c.length; n++) {
+    const r = withBuf([c.subarray(0, n)], 4096, (p, o) => x.si_case_confirm(p[0], n, 1n, o, 4096));
+    assert.ok(r.rc < 0, `case prefix ${n}`);
+  }
+}
+
 // Memory is reusable: many round trips leave the module healthy.
 const before = x.memory.buffer.byteLength;
 for (let i = 0; i < 200; i++) call(x.si_pdq, new Uint8Array(64 * 64 * 3).fill(i), 64, 64, 33);
 assert.ok(x.memory.buffer.byteLength <= before + 8 * 1024 * 1024, "memory growth bounded");
 
-console.log(`wasm ok: ${checked} frames bit-exact against the reference fixture, ${vectors} layer 2 and ${vectors4} layer 4 vectors, ${exportNames.length} exports, no imports`);
+console.log(`wasm ok: ${checked} frames bit-exact against the reference fixture, ${vectors} layer 2, ${vectors4} layer 4 and ${vectors3} layer 3 vectors, ${exportNames.length} exports, no imports`);

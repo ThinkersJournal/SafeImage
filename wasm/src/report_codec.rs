@@ -15,7 +15,7 @@ use crate::codec::{CodecError, Reader, Writer};
 /// (only possible if the core crate is newer than this table). A host treats it as an alarm.
 pub const UNKNOWN_VARIANT: u8 = 255;
 
-fn status_tag(s: Status) -> u8 {
+pub(crate) fn status_tag(s: Status) -> u8 {
     match s {
         Status::AwaitingCredentials => 0,
         Status::Pending => 1,
@@ -27,7 +27,7 @@ fn status_tag(s: Status) -> u8 {
     }
 }
 
-fn status_from_tag(t: u8) -> Result<Status, CodecError> {
+pub(crate) fn status_from_tag(t: u8) -> Result<Status, CodecError> {
     Ok(match t {
         0 => Status::AwaitingCredentials,
         1 => Status::Pending,

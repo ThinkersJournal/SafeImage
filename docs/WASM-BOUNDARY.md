@@ -1,6 +1,6 @@
 # WebAssembly boundary for layers 2 to 4: design note (PROPOSAL)
 
-**Status:** encoding ruled by the PM on 2026-10-14 (section 3). Layer 2 exports implemented in 0.3.13 (`wasm/src/codec.rs`, `wasm/vectors/layer2.txt`), layer 4 in 0.3.14 (`wasm/src/report_codec.rs`, `wasm/vectors/layer4.txt`); layer 3 follows. Written against `origin/main`
+**Status:** encoding ruled by the PM on 2026-10-14 (section 3). Layer 2 exports implemented in 0.3.13 (`wasm/src/codec.rs`, `wasm/vectors/layer2.txt`), layer 4 in 0.3.14 (`wasm/src/report_codec.rs`, `wasm/vectors/layer4.txt`), layer 3 in 0.3.15 (`wasm/src/evidence.rs`, `wasm/src/evidence_codec.rs`, `wasm/vectors/layer3.txt`). The implementation half of A2 is complete; layer 5 (`match_request`, `screen`) is not in this table and stays Rust only. Written against `origin/main`
 0.3.6. It closes roadmap item A2's design half; the implementation is a separate PR after this is agreed.
 
 ## 1. The problem

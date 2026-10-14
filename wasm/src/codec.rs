@@ -35,6 +35,8 @@ pub enum CodecError {
     Malformed,
     /// Bytes remained after the value.
     TrailingBytes,
+    /// Two actor ids that must differ were equal (the two-person rule).
+    SamePerson,
 }
 
 /// Writes primitives into a growing buffer.
