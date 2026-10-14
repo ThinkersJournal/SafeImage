@@ -110,19 +110,46 @@ let vectors = 0;
 const vectorsUrl = new URL("./vectors/layer2.txt", import.meta.url);
 for (const line of readFileSync(vectorsUrl, "utf8").split("\n")) {
   if (!line || line.startsWith("#")) continue;
-  const [kind, name, inHex, want] = line.split(" ");
-  const input = fromHex(inHex);
-  const r = strongest(input, input.length + 16);
-  if (kind === "strongest") {
-    assert.ok(r.rc > 0, `${name}: rc ${r.rc}`);
-    assert.ok(r.rc <= input.length, `${name}: output no longer than input`);
-    assert.deepEqual(r.out, fromHex(want), `${name}: output`);
+  const f = line.split(" ");
+  const [kind, name, inHex, want] = f;
+  if (kind === "strongest" || kind === "strongest_err") {
+    const input = fromHex(inHex);
+    const r = strongest(input, input.length + 16);
+    if (kind === "strongest") {
+      assert.ok(r.rc > 0, `${name}: rc ${r.rc}`);
+      assert.ok(r.rc <= input.length, `${name}: output no longer than input`);
+      assert.deepEqual(r.out, fromHex(want), `${name}: output`);
+    } else {
+      assert.equal(r.rc, +want, `${name}: error code`);
+    }
+  } else if (kind === "classify") {
+    assert.equal(x.si_classify_status(+f[1]), +f[2], `classify ${f[1]}`);
+  } else if (kind === "within_cap") {
+    assert.equal(x.si_within_cap(+f[1], +f[2]), +f[3], `within_cap ${f[1]} ${f[2]}`);
+  } else if (kind === "retry") {
+    const outPtr = x.si_alloc(9);
+    try {
+      const rc = x.si_retry_decide(+f[2], BigInt(f[3]), +f[4], +f[5], BigInt(f[6]), BigInt(f[7]), outPtr);
+      assert.equal(rc, 9, `retry ${f[1]}`);
+      assert.deepEqual(new Uint8Array(x.memory.buffer, outPtr, 9).slice(), fromHex(f[8]), `retry ${f[1]}`);
+    } finally {
+      x.si_free(outPtr, 9);
+    }
+  } else if (kind === "match_request") {
+    const input = fromHex(f[2]);
+    const ptr = x.si_alloc(input.length);
+    try {
+      new Uint8Array(x.memory.buffer, ptr, input.length).set(input);
+      assert.equal(x.si_match_request(ptr, input.length), +f[3], `match_request ${f[1]}`);
+    } finally {
+      x.si_free(ptr, input.length);
+    }
   } else {
-    assert.equal(r.rc, +want, `${name}: error code`);
+    assert.fail(`unknown vector kind ${kind}`);
   }
   vectors++;
 }
-assert.ok(vectors >= 10, "layer 2 vectors present");
+assert.ok(vectors >= 30, "layer 2 vectors present");
 
 // Every prefix of a valid input is refused with a code, never a trap.
 {
@@ -239,6 +266,14 @@ for (const line of readFileSync(l3Url, "utf8").split("\n")) {
     const ev = B(f[3]);
     const r = withBuf([ev], 8, (p) => x.si_evidence_transition(+f[2], p[0], ev.length));
     assert.equal(r.rc, +last, label);
+  } else if (kind === "case_evidence") {
+    const s = B(f[2]);
+    const r = withBuf([s], 8, (p) => x.si_case_evidence(p[0], s.length));
+    assert.equal(r.rc, +last, label);
+  } else if (kind === "may_submit") {
+    const s = B(f[2]);
+    const r = withBuf([s], 8, (p) => x.si_report_may_submit(p[0], s.length));
+    assert.equal(r.rc, +last, label);
   } else if (kind === "disposition") {
     assert.equal(x.si_report_file_disposition(+f[2], +f[3]), +last, label);
   } else if (kind === "period") {
@@ -294,7 +329,7 @@ for (const line of readFileSync(l3Url, "utf8").split("\n")) {
   }
   vectors3++;
 }
-assert.ok(vectors3 >= 40, "layer 3 vectors present");
+assert.ok(vectors3 >= 60, "layer 3 vectors present");
 // Every prefix of a valid case is refused with a code, never a trap.
 {
   const line = readFileSync(l3Url, "utf8").split("\n").find((l) => l.startsWith("set_hold ok "));

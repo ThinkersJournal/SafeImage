@@ -4,6 +4,15 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.16] - 2026-10-14
+
+### Tests
+- `wasm/vectors/layer2.txt` gains vectors for `si_classify_status`, `si_within_cap`, `si_retry_decide` and
+  `si_match_request` (they were asserted inline in `test.mjs`, where a host could not replay them);
+  `layer3.txt` gains `case_evidence`, `may_submit` and three refusal vectors (same person, clearing a
+  sighting, deciding twice). `wasm/vectors/README.md` documents every line kind.
+  Roadmap item A3 is done.
+
 ## [0.3.15] - 2026-10-14
 
 ### Added

@@ -447,6 +447,65 @@ fn layer3_vectors_file_is_current() {
         }
     }
     t += &format!("period {}\n", si_preservation_period_secs());
+    let st_list = |v: &[EvidenceState]| {
+        let mut w = crate::codec::Writer::new();
+        w.u32(v.len() as u32);
+        for s in v {
+            w.u8(state_tag(*s));
+        }
+        w.finish()
+    };
+    for (name, v) in [
+        ("empty", vec![]),
+        ("pending", vec![EvidenceState::Pending]),
+        (
+            "missing_beats_pending",
+            vec![EvidenceState::Pending, EvidenceState::Missing],
+        ),
+        (
+            "all_present",
+            vec![EvidenceState::Present, EvidenceState::FileWithoutEvidence],
+        ),
+    ] {
+        let b = st_list(&v);
+        t += &format!(
+            "case_evidence {name} {} {}\n",
+            hex(&b),
+            num(case_evidence_code(&b))
+        );
+    }
+    let pair_list = |v: &[(EvidenceState, bool)]| {
+        let mut w = crate::codec::Writer::new();
+        w.u32(v.len() as u32);
+        for (s, f) in v {
+            w.u8(state_tag(*s));
+            w.u8(u8::from(*f));
+        }
+        w.finish()
+    };
+    for (name, v) in [
+        ("empty", vec![]),
+        ("present_found", vec![(EvidenceState::Present, true)]),
+        ("present_not_found", vec![(EvidenceState::Present, false)]),
+        (
+            "without_evidence",
+            vec![(EvidenceState::FileWithoutEvidence, false)],
+        ),
+        (
+            "one_holds",
+            vec![
+                (EvidenceState::Present, true),
+                (EvidenceState::Pending, true),
+            ],
+        ),
+    ] {
+        let b = pair_list(&v);
+        t += &format!(
+            "may_submit {name} {} {}\n",
+            hex(&b),
+            num(may_submit_code(&b))
+        );
+    }
 
     let done = ReportClock {
         status: ReportStatus::Finished,
@@ -491,6 +550,31 @@ fn layer3_vectors_file_is_current() {
         "confirm ok {} 7 {}\n",
         hex(&known_b),
         res(confirm_bytes(&known_b, 7, BIG))
+    );
+    let mut same = crate::codec::Writer::new();
+    same.str("alice");
+    same.str("alice");
+    let same = same.finish();
+    t += &format!(
+        "set_hold same_person {} {} {} 9 {}\n",
+        hex(&known_b),
+        hex(&same),
+        hex(b"subpoena"),
+        res(set_hold_bytes(&known_b, &same, b"subpoena", 9, BIG))
+    );
+    let sighting_b = encode_case(&case(CaseKind::ModeratorSighting));
+    let two_ok = encode_approval(&ClearApproval::Two(two("m1", "m2")));
+    t += &format!(
+        "clear sighting {} {} 5 {}\n",
+        hex(&sighting_b),
+        hex(&two_ok),
+        res(clear_bytes(&sighting_b, &two_ok, 5, BIG))
+    );
+    let confirmed_b = confirm_bytes(&known_b, 7, BIG).unwrap();
+    t += &format!(
+        "confirm twice {} 8 {}\n",
+        hex(&confirmed_b),
+        res(confirm_bytes(&confirmed_b, 8, BIG))
     );
     let one = encode_approval(&ClearApproval::One(actor("m1")));
     let twop = encode_approval(&ClearApproval::Two(two("m1", "m2")));
