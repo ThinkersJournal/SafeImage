@@ -4,6 +4,19 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.15] - 2026-10-14
+
+### Added
+- WebAssembly module (ABI version 4): layer 3 exports `si_evidence_transition`, `si_case_evidence`,
+  `si_report_file_disposition`, `si_report_may_submit`, `si_preservation_period_secs`,
+  `si_preserve_until`, `si_case_apply_file_event`, `si_case_confirm`, `si_case_clear`,
+  `si_case_set_hold`, `si_case_lift_hold`, `si_case_begin_destruction_on_request`,
+  `si_case_begin_destruction_expired`, `si_case_reaper_eligibility` and `si_check_release_hold`
+  (`wasm/src/evidence.rs`, `wasm/src/evidence_codec.rs`). The two-person rule is checked on decode:
+  equal ids are `ERR_SAME_PERSON`. Destruction is recorded and nothing is deleted; there is no delete
+  export. Every unknown tag is a refusal. Closes roadmap item A2.
+- `wasm/vectors/layer3.txt`, replayed by `wasm/test.mjs`.
+
 ## [0.3.14] - 2026-10-14
 
 ### Added

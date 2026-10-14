@@ -17,6 +17,8 @@
 #![allow(unsafe_code)] // pointer-taking C ABI; every unsafe block states its contract
 
 pub mod codec;
+pub mod evidence;
+pub mod evidence_codec;
 pub mod report_codec;
 
 use safeimage::hash::{Frame, FrameError, pdq, pdq_dihedral};
@@ -27,8 +29,8 @@ use safeimage::matcher::{
 use codec::{CodecError, unavailable_from_tag, unavailable_tag};
 
 /// ABI version: bump when an export's signature or the output layout changes. 2 added the layer 2
-/// exports, 3 the layer 4 exports; layer 1's layout is unchanged.
-pub const ABI_VERSION: u32 = 3;
+/// exports, 3 the layer 4 exports, 4 the layer 3 exports; layer 1's layout is unchanged.
+pub const ABI_VERSION: u32 = 4;
 
 /// Largest structured input, in bytes. Inputs are bytes, not frames, so this is far below the
 /// isolate memory limit; a larger buffer is refused before any decoding.
@@ -187,13 +189,14 @@ pub unsafe extern "C" fn si_pdq_dihedral(
     OK
 }
 
-fn codec_error_code(e: CodecError) -> i32 {
+pub(crate) fn codec_error_code(e: CodecError) -> i32 {
     match e {
         CodecError::BadVersion => ERR_BAD_VERSION,
         CodecError::Truncated => ERR_TRUNCATED,
         CodecError::UnknownTag => ERR_UNKNOWN_TAG,
         CodecError::Malformed => ERR_MALFORMED,
         CodecError::TrailingBytes => ERR_TRAILING_BYTES,
+        CodecError::SamePerson => ERR_SAME_PERSON,
     }
 }
 
@@ -253,7 +256,7 @@ pub fn retry_bytes(
 ///
 /// # Safety
 /// `ptr` must point to `len` readable bytes in this module's memory when non-null and `len > 0`.
-unsafe fn input_slice<'a>(ptr: *const u8, len: usize) -> Result<&'a [u8], i32> {
+pub(crate) unsafe fn input_slice<'a>(ptr: *const u8, len: usize) -> Result<&'a [u8], i32> {
     if len > MAX_INPUT_BYTES {
         return Err(ERR_INPUT_TOO_LARGE);
     }
@@ -381,6 +384,9 @@ pub unsafe extern "C" fn si_match_request(input: *const u8, input_len: usize) ->
 // byte count or a negative code. `si_report_apply` may write up to its state input plus
 // `REPORT_APPLY_HEADROOM` bytes (a capped code, a capped event detail and a moved report id).
 
+/// Two actor ids that must differ were equal (the two-person rule).
+pub const ERR_SAME_PERSON: i32 = -16;
+
 /// Extra output bytes `si_report_apply` may need beyond the state it was given.
 pub const REPORT_APPLY_HEADROOM: usize = 1024;
 /// Most files a new report may declare.
@@ -390,7 +396,7 @@ pub const ERR_ALREADY_FINISHED: i32 = -14;
 /// The core refused for a reason this module does not name (a newer core than this table).
 pub const ERR_REFUSED: i32 = -15;
 
-fn encode_checked(bytes: Vec<u8>, out_cap: usize) -> Result<Vec<u8>, i32> {
+pub(crate) fn encode_checked(bytes: Vec<u8>, out_cap: usize) -> Result<Vec<u8>, i32> {
     if bytes.len() > out_cap {
         Err(ERR_OUT_TOO_SMALL)
     } else {
@@ -479,7 +485,7 @@ pub fn report_retry_bytes(state: &[u8], out_cap: usize) -> Result<Vec<u8>, i32> 
 /// # Safety
 /// `out` must point to at least `bytes.len()` writable bytes (callers pass `out_cap` and the pure
 /// cores have already checked `bytes.len() <= out_cap`).
-unsafe fn emit(out: *mut u8, result: Result<Vec<u8>, i32>) -> i32 {
+pub(crate) unsafe fn emit(out: *mut u8, result: Result<Vec<u8>, i32>) -> i32 {
     match result {
         Ok(bytes) => {
             // SAFETY: the caller's contract.
@@ -672,6 +678,9 @@ pub extern "C" fn si_deletion_window_elapsed(
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod tests_evidence;
 
 #[cfg(test)]
 mod tests_report;
