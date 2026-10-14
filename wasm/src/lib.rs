@@ -17,6 +17,7 @@
 #![allow(unsafe_code)] // pointer-taking C ABI; every unsafe block states its contract
 
 pub mod codec;
+pub mod report_codec;
 
 use safeimage::hash::{Frame, FrameError, pdq, pdq_dihedral};
 use safeimage::matcher::{
@@ -25,9 +26,9 @@ use safeimage::matcher::{
 
 use codec::{CodecError, unavailable_from_tag, unavailable_tag};
 
-/// ABI version: bump when an export's signature or the output layout changes. 2 adds the layer 2
-/// exports; layer 1's layout is unchanged.
-pub const ABI_VERSION: u32 = 2;
+/// ABI version: bump when an export's signature or the output layout changes. 2 added the layer 2
+/// exports, 3 the layer 4 exports; layer 1's layout is unchanged.
+pub const ABI_VERSION: u32 = 3;
 
 /// Largest structured input, in bytes. Inputs are bytes, not frames, so this is far below the
 /// isolate memory limit; a larger buffer is refused before any decoding.
@@ -374,5 +375,303 @@ pub unsafe extern "C" fn si_match_request(input: *const u8, input_len: usize) ->
     }
 }
 
+// ---- Layer 4: the generic report mechanism ----------------------------------------------------
+//
+// Every export takes encoded messages (see `report_codec`) and writes one at `out`, returning the
+// byte count or a negative code. `si_report_apply` may write up to its state input plus
+// `REPORT_APPLY_HEADROOM` bytes (a capped code, a capped event detail and a moved report id).
+
+/// Extra output bytes `si_report_apply` may need beyond the state it was given.
+pub const REPORT_APPLY_HEADROOM: usize = 1024;
+/// Most files a new report may declare.
+pub const MAX_REPORT_FILES: u32 = 65_536;
+/// A withdrawal was requested for a report that already finished.
+pub const ERR_ALREADY_FINISHED: i32 = -14;
+/// The core refused for a reason this module does not name (a newer core than this table).
+pub const ERR_REFUSED: i32 = -15;
+
+fn encode_checked(bytes: Vec<u8>, out_cap: usize) -> Result<Vec<u8>, i32> {
+    if bytes.len() > out_cap {
+        Err(ERR_OUT_TOO_SMALL)
+    } else {
+        Ok(bytes)
+    }
+}
+
+fn state_in(input: &[u8]) -> Result<safeimage::report::ReportState, i32> {
+    if input.len() > MAX_INPUT_BYTES {
+        return Err(ERR_INPUT_TOO_LARGE);
+    }
+    report_codec::decode_state(input).map_err(codec_error_code)
+}
+
+/// Pure core of [`si_report_new`].
+pub fn report_new_bytes(
+    file_count: u32,
+    credentials_ready: u32,
+    out_cap: usize,
+) -> Result<Vec<u8>, i32> {
+    if file_count > MAX_REPORT_FILES || credentials_ready > 1 {
+        return Err(ERR_BAD_ARGUMENT);
+    }
+    let s = safeimage::report::ReportState::new(file_count as usize, credentials_ready == 1);
+    encode_checked(report_codec::encode_state(&s), out_cap)
+}
+
+/// Pure core of [`si_report_next_step`].
+pub fn report_next_step_bytes(state: &[u8], now: u64, out_cap: usize) -> Result<Vec<u8>, i32> {
+    let s = state_in(state)?;
+    encode_checked(
+        report_codec::encode_step(&safeimage::report::next_step(&s, now)),
+        out_cap,
+    )
+}
+
+/// Pure core of [`si_report_apply`].
+pub fn report_apply_bytes(
+    state: &[u8],
+    step: &[u8],
+    answer: &[u8],
+    now: u64,
+    out_cap: usize,
+) -> Result<Vec<u8>, i32> {
+    let s = state_in(state)?;
+    if step.len() > MAX_INPUT_BYTES || answer.len() > MAX_INPUT_BYTES {
+        return Err(ERR_INPUT_TOO_LARGE);
+    }
+    let step = report_codec::decode_step(step).map_err(codec_error_code)?;
+    let answer = report_codec::decode_answer(answer).map_err(codec_error_code)?;
+    let (next, event) = safeimage::report::apply(&s, &step, &answer, now);
+    encode_checked(report_codec::encode_applied(&next, &event), out_cap)
+}
+
+/// Pure core of [`si_report_sync_credentials`].
+pub fn report_sync_bytes(state: &[u8], ready: u32, out_cap: usize) -> Result<Vec<u8>, i32> {
+    if ready > 1 {
+        return Err(ERR_BAD_ARGUMENT);
+    }
+    let s = state_in(state)?;
+    let n = safeimage::report::sync_credentials(&s, ready == 1);
+    encode_checked(report_codec::encode_state(&n), out_cap)
+}
+
+/// Pure core of [`si_report_request_retract`].
+pub fn report_retract_bytes(state: &[u8], out_cap: usize) -> Result<Vec<u8>, i32> {
+    let s = state_in(state)?;
+    match safeimage::report::request_retract(&s) {
+        Ok(n) => encode_checked(report_codec::encode_state(&n), out_cap),
+        Err(safeimage::report::RetractError::AlreadyFinished) => Err(ERR_ALREADY_FINISHED),
+        Err(_) => Err(ERR_REFUSED),
+    }
+}
+
+/// Pure core of [`si_report_retry_failed`].
+pub fn report_retry_bytes(state: &[u8], out_cap: usize) -> Result<Vec<u8>, i32> {
+    let s = state_in(state)?;
+    encode_checked(
+        report_codec::encode_state(&safeimage::report::retry_failed(&s)),
+        out_cap,
+    )
+}
+
+/// Writes `bytes` at `out` and returns the count, or the error code.
+///
+/// # Safety
+/// `out` must point to at least `bytes.len()` writable bytes (callers pass `out_cap` and the pure
+/// cores have already checked `bytes.len() <= out_cap`).
+unsafe fn emit(out: *mut u8, result: Result<Vec<u8>, i32>) -> i32 {
+    match result {
+        Ok(bytes) => {
+            // SAFETY: the caller's contract.
+            unsafe { core::slice::from_raw_parts_mut(out, bytes.len()) }.copy_from_slice(&bytes);
+            bytes.len() as i32
+        }
+        Err(c) => c,
+    }
+}
+
+/// A new report: `file_count` files, `credentials_ready` 0 or 1. Writes the encoded state.
+///
+/// # Safety
+/// `out` must point to `out_cap` writable bytes in this module's memory.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn si_report_new(
+    file_count: u32,
+    credentials_ready: u32,
+    out: *mut u8,
+    out_cap: usize,
+) -> i32 {
+    if out.is_null() {
+        return ERR_NULL_POINTER;
+    }
+    // SAFETY: contract above; the core checked the length against `out_cap`.
+    unsafe {
+        emit(
+            out,
+            report_new_bytes(file_count, credentials_ready, out_cap),
+        )
+    }
+}
+
+/// What is due next for an encoded state at time `now` (seconds). Writes the encoded step.
+///
+/// # Safety
+/// `state` must point to `state_len` readable bytes and `out` to `out_cap` writable bytes.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn si_report_next_step(
+    state: *const u8,
+    state_len: usize,
+    now: u64,
+    out: *mut u8,
+    out_cap: usize,
+) -> i32 {
+    if out.is_null() {
+        return ERR_NULL_POINTER;
+    }
+    // SAFETY: contract above.
+    let state = match unsafe { input_slice(state, state_len) } {
+        Ok(s) => s,
+        Err(c) => return c,
+    };
+    // SAFETY: contract above.
+    unsafe { emit(out, report_next_step_bytes(state, now, out_cap)) }
+}
+
+/// Applies the destination's answer to a step. Writes the new state followed by an optional event
+/// (one flag byte, then the event); allocate the state length plus [`REPORT_APPLY_HEADROOM`].
+///
+/// # Safety
+/// Each input pointer must point to its length in readable bytes and `out` to `out_cap` writable
+/// bytes, all inside this module's memory.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn si_report_apply(
+    state: *const u8,
+    state_len: usize,
+    step: *const u8,
+    step_len: usize,
+    answer: *const u8,
+    answer_len: usize,
+    now: u64,
+    out: *mut u8,
+    out_cap: usize,
+) -> i32 {
+    if out.is_null() {
+        return ERR_NULL_POINTER;
+    }
+    // SAFETY: contract above, for each of the three inputs.
+    let (state, step, answer) = unsafe {
+        match (
+            input_slice(state, state_len),
+            input_slice(step, step_len),
+            input_slice(answer, answer_len),
+        ) {
+            (Ok(a), Ok(b), Ok(c)) => (a, b, c),
+            (Err(c), _, _) | (_, Err(c), _) | (_, _, Err(c)) => return c,
+        }
+    };
+    // SAFETY: contract above.
+    unsafe { emit(out, report_apply_bytes(state, step, answer, now, out_cap)) }
+}
+
+/// Moves a report between awaiting-credentials and pending. `ready` is 0 or 1.
+///
+/// # Safety
+/// As [`si_report_next_step`].
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn si_report_sync_credentials(
+    state: *const u8,
+    state_len: usize,
+    ready: u32,
+    out: *mut u8,
+    out_cap: usize,
+) -> i32 {
+    if out.is_null() {
+        return ERR_NULL_POINTER;
+    }
+    // SAFETY: contract above.
+    let state = match unsafe { input_slice(state, state_len) } {
+        Ok(s) => s,
+        Err(c) => return c,
+    };
+    // SAFETY: contract above.
+    unsafe { emit(out, report_sync_bytes(state, ready, out_cap)) }
+}
+
+/// Requests a withdrawal. [`ERR_ALREADY_FINISHED`] when the report already finished.
+///
+/// # Safety
+/// As [`si_report_next_step`] without `now`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn si_report_request_retract(
+    state: *const u8,
+    state_len: usize,
+    out: *mut u8,
+    out_cap: usize,
+) -> i32 {
+    if out.is_null() {
+        return ERR_NULL_POINTER;
+    }
+    // SAFETY: contract above.
+    let state = match unsafe { input_slice(state, state_len) } {
+        Ok(s) => s,
+        Err(c) => return c,
+    };
+    // SAFETY: contract above.
+    unsafe { emit(out, report_retract_bytes(state, out_cap)) }
+}
+
+/// A human's retry of a failed report.
+///
+/// # Safety
+/// As [`si_report_request_retract`].
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn si_report_retry_failed(
+    state: *const u8,
+    state_len: usize,
+    out: *mut u8,
+    out_cap: usize,
+) -> i32 {
+    if out.is_null() {
+        return ERR_NULL_POINTER;
+    }
+    // SAFETY: contract above.
+    let state = match unsafe { input_slice(state, state_len) } {
+        Ok(s) => s,
+        Err(c) => return c,
+    };
+    // SAFETY: contract above.
+    unsafe { emit(out, report_retry_bytes(state, out_cap)) }
+}
+
+/// Seconds to wait after `attempts` consecutive failures (layer 4 `backoff_secs`).
+#[unsafe(no_mangle)]
+pub extern "C" fn si_backoff_secs(attempts: u32) -> u64 {
+    safeimage::report::backoff_secs(attempts)
+}
+
+/// 1 when an unfinished report may have been discarded by the destination, else 0
+/// (layer 4 `deletion_window_elapsed`).
+#[unsafe(no_mangle)]
+pub extern "C" fn si_deletion_window_elapsed(
+    opened_at: u64,
+    last_modified_at: u64,
+    now: u64,
+    open_secs: u64,
+    idle_secs: u64,
+) -> i32 {
+    i32::from(safeimage::report::deletion_window_elapsed(
+        opened_at,
+        last_modified_at,
+        now,
+        safeimage::report::WindowPolicy {
+            open_secs,
+            idle_secs,
+        },
+    ))
+}
+
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod tests_report;

@@ -73,7 +73,7 @@ Items not blocked by F1 to F4 are marked **ready**.
 | # | Item | Why | State |
 |---|---|---|---|
 | A1 | `docs/INTEGRATION.md`: how a host wires the layers (what the host supplies, the call order, failing closed, what the host stores), written for a Rust host and for the WASM host | Both consumers need it before they can adopt; no code change | **ready** |
-| A2 | WASM boundary for layers 2 to 4: a design note first (byte-in, byte-out encoding, typed errors, no panic across the boundary, the acceptance criteria in DESIGN section 5), then the implementation | Community steps 3 to 5 cannot run in a Worker without it | **in progress**: layer 2 exports done (0.3.13); layers 4 then 3 follow |
+| A2 | WASM boundary for layers 2 to 4: a design note first (byte-in, byte-out encoding, typed errors, no panic across the boundary, the acceptance criteria in DESIGN section 5), then the implementation | Community steps 3 to 5 cannot run in a Worker without it | **in progress**: layers 2 (0.3.13) and 4 (0.3.14) done; layer 3 follows |
 | A3 | Conformance vectors for layers 2 to 4 from the Rust tests, in a form a TypeScript host can replay | Lets Community prove its adoption without editing its own tests | after A2 |
 | A0 | P1 and P2 above: provenance differences table, `NOTICE` tense | The one open provenance item | **ready** |
 | A4 | Reference cross-check above 512 px: frames of 2048 x 1536, 3000 x 2001 and 4096 x 4096 (exactly `MAX_FRAME_PIXELS`) added to the fixtures; hash, quality and all eight orientations match the reference bit for bit. The workerd run (Q7) is still untested above 512 px: that is the consumer's gate, not the crate's | Closes the crate-side half of the stated limit | **done** (0.3.12) |
