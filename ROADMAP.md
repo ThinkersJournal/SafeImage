@@ -8,7 +8,7 @@ Decisions that are not ours are marked **gate** and name who decides. Nothing he
 - Layers 1 to 5 exist, are tested, and are bit-exact against the reference on the fixtures
   (`docs/DESIGN.md` section 3). `wasm/` exposes layers 1 to 4 (ABI version 4; layer 5 stays Rust only).
 - The repository is already public. What has **not** happened is a release: `safeimage` is
-  `publish = false`, and PR #15 (draft, 0.3.7) is the change that removes that line.
+  `publish = false`, and PR #15 (draft) is the change that removes that line.
 - No consumer depends on the crate yet. Community's adoption steps 3 to 5 wait on the gates below.
 
 ## Path to the first release (the "public flip")
@@ -17,9 +17,9 @@ The repository is public; the flip left is "a consumer can depend on a published
 
 | # | Step | Gate | Status |
 |---|---|---|---|
-| F1 | Registry and who publishes (Q8) | CireSnave, board 174 | open |
-| F2 | Where profiles live and how a public consumer obtains them (Q9) | CireSnave, board 174 | open |
-| F3 | How a TypeScript consumer obtains the WASM: npm package or vendored `.wasm` with SHA (Q10) | CireSnave, board 174 | open |
+| F1 | Registry and who publishes (Q8): crates.io, the PM publishes at the first code release | CireSnave, board 174 | **ruled 2026-10-16** |
+| F2 | Where profiles live (Q9): deploy-time operator configuration, never a public repository | CireSnave, board 174 | **ruled 2026-10-16** |
+| F3 | How a TypeScript consumer obtains the WASM (Q10): an npm package built from the CI artifact (plan: `docs/NPM-PACKAGE.md`) | CireSnave, board 174 | **ruled 2026-10-16**; CI job not built |
 | F4 | Written answer on naming the hash-match provider in public text (G4) | CireSnave | open |
 | F5 | Provenance close-out (portfolio rule 6.4a); the derived list is below | this lane, PM at gate | done: P1 and P2 landed in 0.3.11 |
 | F6 | Merge #15 (`publish = false` removed, package metadata) and publish | PM, from a clean `git archive` of `main` | draft, held |
@@ -54,10 +54,10 @@ Its own plan is the migration table in its `2026-10-10-safeimage-split.md`; the 
 
 | Step | SafeImage supplies | Exists today | Needs |
 |---|---|---|---|
-| 2 | PDQ in the WASM module | yes (Q7 passed 2026-10-10) | F3 to ship it as an artifact |
-| 3 | Layer 2: `strongest`, request building and interpretation, retry policy | Rust, and WASM exports (0.3.13) | F3 to ship it as an artifact; a profile for `request`/`interpret` (F2) |
-| 4 | Layer 4 generic half | Rust, and WASM exports (0.3.14) | F3 to ship it as an artifact; a profile to run it (F2) |
-| 5 | Layer 3 pure half | Rust, and WASM exports (0.3.15) | F3 to ship it as an artifact |
+| 2 | PDQ in the WASM module | yes (Q7 passed 2026-10-10) | F3: the npm package |
+| 3 | Layer 2: `strongest`, request building and interpretation, retry policy | Rust, and WASM exports (0.3.13) | F3: the npm package; operator configuration for `request`/`interpret` (F2) |
+| 4 | Layer 4 generic half | Rust, and WASM exports (0.3.14) | F3: the npm package; operator configuration to run it (F2) |
+| 5 | Layer 3 pure half | Rust, and WASM exports (0.3.15) | F3: the npm package |
 
 ### Humboldt (Rust)
 
