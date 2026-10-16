@@ -66,8 +66,8 @@ time (pre-1.0: a breaking change raises the second number).
     public type holding one);
   - backoff matches the consumer's pinned schedule (2, 4, 8 ... capped at 30 minutes);
   - no destination-specific name, field or code in the repository (CI).
-- **Depends on:** S2-3 (`HttpRequestSpec`). The first destination profile is built in the profiles
-  repository once Q9 is settled; it is not part of this task.
+- **Depends on:** S2-3 (`HttpRequestSpec`). The first destination's specifics are deploy-time operator
+  configuration (Q9, ruled); they are not part of this task.
 
 ## Task S2-5: layer 3, evidence and two-person workflow (last)
 
@@ -112,7 +112,5 @@ tests is a finding for both, not a patch to one side).
 
 | Item | Gates |
 |---|---|
-| Q8: how a public consumer depends on a crate that is `publish = false` | adoption by the consumer, not S2-1 to S2-4 |
-| Q9: where profiles live | the first profile, not S2-4 |
 | Upstream PDQ SHA and licence reading | S2-1 start |
 | A consumer schema revision to follow | S2-5 start |

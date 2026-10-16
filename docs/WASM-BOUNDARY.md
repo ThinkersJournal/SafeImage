@@ -70,9 +70,8 @@ rather than a production surprise. B stays the recorded fallback; adopting it wo
 2. Encoding module and layer 2 exports, with vectors generated from the Rust tests.
 3. Layer 4, then layer 3 (last, as Community's own order has it).
 4. `wasm/test.mjs` replays every vector; Community runs its workerd gate on the new module.
-5. Distribution of the built module is Q10 and is not decided here.
+5. Distribution: an npm package built from the CI artifact (Q10, ruled 2026-10-16; `docs/NPM-PACKAGE.md`).
 
 ## 6. Not decided here
 
-Q10 (npm package versus a vendored `.wasm`), where profiles live (Q9), and anything that names a
-provider or destination. None of those changes the boundary.
+Anything that names a provider or destination (G4). It does not change the boundary.

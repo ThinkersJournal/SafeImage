@@ -4,6 +4,14 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.18] - 2026-10-16
+
+### Docs
+- Board 174 rulings recorded: Q8 (crates.io, the PM publishes at the first code release), Q9 option B
+  (destination and provider specifics are deploy-time operator configuration; the proposed profiles
+  repository is dropped) and Q10 (an npm package built from the CI artifact). `docs/NPM-PACKAGE.md` plans
+  the CI job; nothing publishes. `ROADMAP.md` F1 to F3 and the adoption table updated.
+
 ## [0.3.17] - 2026-10-14
 
 ### Docs

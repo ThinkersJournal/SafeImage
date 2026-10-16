@@ -335,9 +335,8 @@ repository, in any file, test name, comment or commit; CI enforces that (section
 |---|---|
 | **Destination profile** | implements `ReportDestination` (section 3.4) |
 | **Provider profile** | implements `ProviderProtocol` (section 3.2) |
-| **Form** | Rust code in a private companion crate, or data files supplied by the operator at runtime for the parts that are pure data (labels, endpoint templates, field maps) |
-| **Proposed home** | a private repository `ThinkersJournal/SafeImage-profiles` (a crate that depends on this one and exports profiles); operators who cannot use it supply their own profile crate or files. The first consumer and this lane agree the choice (Q9) |
-| **Vendored schemas** | live only with the profile, never here; their licences are recorded there |
+| **Form and home** | deploy-time operator configuration (Q9, ruled 2026-10-16): the operator supplies the destination and provider specifics when deploying; they are never in a public repository, and the crate asks for credentials generically |
+| **Vendored schemas** | live only with the operator's configuration, never here; their licences are recorded there |
 
 **Asking for credentials without naming anyone.** The crate exposes:
 - `credential_slots()` from each *loaded* profile: `CredentialSlot { key, kind: Secret | Text | Url, required }`
@@ -410,7 +409,7 @@ Agreed with the Community lane before any code moves; this section is the SafeIm
 2. **Port PDQ into layer 1 (this is Community US1, done here).** Same vetting steps (pin upstream SHA, read
    each file's header, licence verbatim, `NOTICE` updated in the same change). Fixtures from generated images.
 3. **Layer 4's generic half** (`ReportDestination`, `Step`, answer enum, backoff) here, and the first
-   destination profile in the profiles repository, with the Community supplying the test-environment run.
+   destination profile in the operator's deploy-time configuration, with the Community supplying the test-environment run.
 4. **Layer 3's pure half** last, because it is coupled to the Community's still-moving case schema (it has
    revision 3 plus amendments and no code). Do not extract it from a schema that is still changing.
 5. Layer 5 is a trait and a token type; it can land any time and costs nothing to the Community.
@@ -472,9 +471,9 @@ that and re-reads the terms at each release.
 | Q5 | Does Lightbulb need layer 5's `ScreenedFrame` token at the API boundary, or at its request handler only? | Lightbulb lane | layer 5's final shape |
 | Q6 | **Resolved by both lanes:** sans-I/O core only in 0.1.x; no `async` driver or transport-bound matcher until a consumer asks | - | - |
 | Q7 | **Passed 2026-10-10** (Community lane, real workerd via vitest-pool-workers, `CompiledWasm`): synchronous `Instance`, no imports, exact exports, 18 reference frames bit-exact, error codes returned with no trap, no memory growth over 20 dihedral calls at 512x512; about 10 ms per call on a local `wrangler dev` (at the free plan CPU cap), 25.9 KiB upload. Option B is viable; the binding needed no change. Not tested: frames above 512 px, SIMD or other targets | Community lane | - |
-| Q8 | The crate is `publish = false` in a private repo, while the first consumer is public and its rule is "published versions only". Adoption steps 3 to 5 of §6 cannot merge there until a registry (crates.io or otherwise) is chosen | PM, CireSnave via the board | adoption by the consumer, not the crate's own steps 1 to 3 |
-| Q9 | Home and form of profiles (section 3.6): private companion repository, operator-supplied files, or both; and how the first consumer (public) obtains the profile crate, given Q8 | PM, CireSnave via the board, with the Community lane | adoption of layer 4 and of any provider client |
-| Q10 | How a TypeScript consumer obtains the built WebAssembly module, given `safeimage-wasm` is **not** published to crates.io (it holds the only `unsafe` in the repository): an npm package of the CI artifact, or vendoring the `.wasm` with its SHA-256 recorded. Either needs the artifact's provenance (the CI run and the commit) to be checkable | CireSnave, via the PM's board | the consumer's adoption of option B |
+| Q8 | **Ruled 2026-10-16 (board 174, CireSnave):** `safeimage` is published to crates.io at the first code release (the PM publishes), and an npm package is built from the WASM layers (`docs/NPM-PACKAGE.md`). `safeimage-wasm` stays `publish = false` | CireSnave | - |
+| Q9 | **Ruled 2026-10-16 (board 174, CireSnave), option B:** destination and provider specifics are deploy-time operator configuration, never in a public repository; the crate asks for credentials generically (section 3.6). No profiles repository | CireSnave | - |
+| Q10 | **Ruled 2026-10-16 (board 174, CireSnave):** a TypeScript consumer gets an npm package built from the CI artifact, not a vendored `.wasm` (`docs/NPM-PACKAGE.md`) | CireSnave | - |
 
 ---
 
