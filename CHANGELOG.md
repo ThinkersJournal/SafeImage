@@ -4,6 +4,15 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.19] - 2026-10-16
+
+### Packaging (draft: not for merge until the maintainer says publish)
+- `publish = false` removed from `safeimage`; `keywords`, `categories` and an `include` list added.
+  The package is the library, its licences and notices, README, changelog, the design document and
+  the provenance note (38 files, 66 kB compressed); tests, fixtures, CI and the WebAssembly
+  binding stay in the repository. `safeimage-wasm` keeps `publish = false`.
+- `cargo package` verifies locally; nothing is uploaded.
+
 ## [0.3.18] - 2026-10-16
 
 ### Docs
