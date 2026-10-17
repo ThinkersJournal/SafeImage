@@ -3,6 +3,8 @@
 //! `tests/fixtures/reference.txt` is produced by `tests/reference/build.sh`, which builds the
 //! unmodified upstream sources and a harness. Frames are the synthetic ones in `support`.
 
+#[path = "support/frame_list.rs"]
+mod frame_list;
 mod support;
 
 use safeimage::hash::{__reference_support as rs, Frame, Hash256, pdq, pdq_dihedral};
@@ -70,8 +72,8 @@ fn parse() -> (String, HashMap<String, Ref>) {
 #[test]
 fn fixture_covers_every_synthetic_frame() {
     let (_, map) = parse();
-    assert_eq!(map.len(), support::FRAMES.len());
-    for (name, ..) in support::FRAMES {
+    assert_eq!(map.len(), frame_list::FRAMES.len());
+    for (name, ..) in frame_list::FRAMES {
         assert!(map.contains_key(*name), "fixture lacks {name}");
     }
 }
@@ -79,7 +81,7 @@ fn fixture_covers_every_synthetic_frame() {
 #[test]
 fn both_upstream_luma_definitions_agree_with_each_other_and_with_ours() {
     let (_, map) = parse();
-    for (name, w, h, pattern) in support::FRAMES {
+    for (name, w, h, pattern) in frame_list::FRAMES {
         let r = &map[*name];
         assert_eq!(
             r.luma_hashing, r.luma_downscaling,
@@ -98,7 +100,7 @@ fn both_upstream_luma_definitions_agree_with_each_other_and_with_ours() {
 #[test]
 fn single_hash_and_quality_match_the_reference_exactly() {
     let (_, map) = parse();
-    for (name, w, h, pattern) in support::FRAMES {
+    for (name, w, h, pattern) in frame_list::FRAMES {
         let rgb = support::make(*w, *h, *pattern);
         let frame = Frame::new(&rgb, *w, *h).unwrap();
         let got = pdq(&frame);
@@ -111,7 +113,7 @@ fn single_hash_and_quality_match_the_reference_exactly() {
 #[test]
 fn all_eight_dihedral_hashes_match_the_reference_exactly() {
     let (_, map) = parse();
-    for (name, w, h, pattern) in support::FRAMES {
+    for (name, w, h, pattern) in frame_list::FRAMES {
         let rgb = support::make(*w, *h, *pattern);
         let frame = Frame::new(&rgb, *w, *h).unwrap();
         let got = pdq_dihedral(&frame);
@@ -132,7 +134,7 @@ fn all_eight_dihedral_hashes_match_the_reference_exactly() {
 fn dct_stage_matches_the_reference_bit_for_bit() {
     let (line, _) = parse();
     let f: Vec<&str> = line.split(' ').collect();
-    let out = rs::dct64_to_16(&support::dct_input());
+    let out = rs::dct64_to_16(&dct_input());
     let mut bytes = Vec::new();
     for x in &out {
         bytes.extend_from_slice(&x.to_le_bytes());
@@ -158,7 +160,7 @@ fn torben_matches_the_reference() {
     let mut seen = 0;
     for line in text.lines().filter(|l| l.starts_with("torben ")) {
         let f: Vec<&str> = line.split(' ').collect();
-        let (_, values) = support::torben_cases()
+        let (_, values) = torben_cases()
             .into_iter()
             .find(|(n, _)| *n == f[1])
             .unwrap();
@@ -170,5 +172,34 @@ fn torben_matches_the_reference() {
         );
         seen += 1;
     }
-    assert_eq!(seen, support::torben_cases().len());
+    assert_eq!(seen, torben_cases().len());
+}
+
+/// The `dct64To16` input used by both sides (row-major 64 x 64).
+fn dct_input() -> Vec<f32> {
+    let mut a = vec![0f32; 64 * 64];
+    for i in 0..64usize {
+        for j in 0..64usize {
+            a[i * 64 + j] = ((i * 131 + j * 71 + (i ^ j) * 17) % 255) as f32 / 3.0;
+        }
+    }
+    a
+}
+
+/// Arrays for the `torben` median fixture (shared with the C++ harness by construction).
+fn torben_cases() -> Vec<(&'static str, Vec<f32>)> {
+    let ties: Vec<f32> = (0..256).map(|i| (i % 16) as f32).collect();
+    let flat = vec![7.0f32; 256];
+    let halves: Vec<f32> = (0..256).map(|i| if i < 128 { 0.0 } else { 1.0 }).collect();
+    let mixed: Vec<f32> = (0..256usize)
+        .map(|i| (((i * 2654435761usize) >> 7) % 1000) as f32 / 8.0 - 20.0)
+        .collect();
+    let odd: Vec<f32> = (0..255).map(|i| ((i * 37) % 101) as f32).collect();
+    vec![
+        ("ties", ties),
+        ("flat", flat),
+        ("halves", halves),
+        ("mixed", mixed),
+        ("odd", odd),
+    ]
 }

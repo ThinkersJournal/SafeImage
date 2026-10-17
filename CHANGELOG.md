@@ -4,6 +4,14 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.24] - 2026-10-17
+
+### Tests
+- `tests/support`: the crate-wide `allow(dead_code)` is gone. `make` stays shared (all four users); `FRAMES` moved to
+  `tests/support/frame_list.rs`, included only by `reference.rs` and `write_frames.rs`; `dct_input` and
+  `torben_cases` moved into `reference.rs`, their only user. No behaviour change: `build.sh` leaves
+  `reference.txt` unchanged. Roadmap item A7.
+
 ## [0.3.23] - 2026-10-17
 
 ### Changed
