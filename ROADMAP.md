@@ -79,6 +79,8 @@ Items not blocked by F1 to F4 are marked **ready**.
 | A4 | Reference cross-check above 512 px: frames of 2048 x 1536, 3000 x 2001 and 4096 x 4096 (exactly `MAX_FRAME_PIXELS`) added to the fixtures; hash, quality and all eight orientations match the reference bit for bit. The workerd run (Q7) is still untested above 512 px: that is the consumer's gate, not the crate's | Closes the crate-side half of the stated limit | **done** (0.3.12) |
 | A5 | Re-run `tests/reference/build.sh` and the mutation suite at release candidate, record the head SHA | Release evidence | at F6 |
 | A6 | 0.4.0 or 1.0 stability decision: which enums stay exhaustive, what is frozen | Only after a consumer has used the API | after first adoption |
+| A7 | Remove the `#![allow(dead_code)]` in `tests/support/mod.rs`: it is shared by several test crates that each use a subset (`make`, `FRAMES`, `dct_input`, `torben_cases`). Cure: make it a `publish = false` workspace member that the tests depend on (its `pub` items are then not dead code in any test crate), or split it per consumer; not another allow | CodeRipper `lint-suppression`; the allow is a reasoned last resort until then | open |
+| A8 | Narrow the crate-level `#![allow(unsafe_code)]` in `wasm/src/lib.rs`: `unsafe` occurs only in `lib.rs` and `evidence.rs` (the pointer-taking `extern "C"` exports and `input_slice`). Cure: drop the crate-level allow and put `#[allow(unsafe_code, reason = ...)]` on those items or on one small `mod abi`, so a new `unsafe` anywhere else fails the build. The exports themselves need `unsafe` for the C ABI and cannot be removed | CodeRipper `lint-suppression`; the allow is a reasoned last resort until then | open |
 
 ## Not on this roadmap
 
