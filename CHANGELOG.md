@@ -4,6 +4,14 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.23] - 2026-10-17
+
+### Changed
+- WASM crate: the `unsafe_code` allowance is no longer crate-wide. The `extern "C"` exports and their helpers moved
+  from `lib.rs` to `wasm/src/abi.rs` (re-exported at the crate root, so every symbol and path is unchanged), and
+  `abi.rs` and `evidence.rs` each carry their own `allow(unsafe_code, reason = ..)`. A new `unsafe` anywhere else
+  now fails the build. ABI version unchanged (4); the module exports the same 34 names. Roadmap item A8.
+
 ## [0.3.22] - 2026-10-17
 
 ### Docs

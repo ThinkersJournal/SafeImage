@@ -8,6 +8,11 @@
 //! code; the table is `ERR_*` in the crate root and the `CASE_*`, `INELIGIBLE_*` and `RELEASE_*`
 //! constants here. **No function here deletes anything**: destruction is only recorded.
 
+#![allow(
+    unsafe_code,
+    reason = "pointer-taking C ABI; every unsafe block states its contract"
+)]
+
 use safeimage::evidence::{
     self as ev, CaseError, CaseKind, HoldTarget, Ineligible, ReleaseRefusal,
 };
