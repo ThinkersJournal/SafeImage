@@ -1,4 +1,7 @@
-#![allow(dead_code)] // shared by several test crates; each uses a subset
+#![allow(
+    dead_code,
+    reason = "shared by several test crates; each uses a subset"
+)]
 //! Deterministic synthetic frames shared by the fixture generator and the tests.
 //!
 //! Integer arithmetic only, so the bytes are identical on every platform. None of these
