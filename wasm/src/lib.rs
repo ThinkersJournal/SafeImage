@@ -14,7 +14,10 @@
 //! Errors are returned as negative `i32` codes; a panic would abort the module (a trap) and the
 //! functions are written so that no input reaches one.
 
-#![allow(unsafe_code)] // pointer-taking C ABI; every unsafe block states its contract
+#![allow(
+    unsafe_code,
+    reason = "pointer-taking C ABI; every unsafe block states its contract"
+)]
 
 pub mod codec;
 pub mod evidence;

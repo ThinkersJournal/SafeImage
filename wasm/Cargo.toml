@@ -1,6 +1,6 @@
 [package]
 name = "safeimage-wasm"
-version = "0.3.20"
+version = "0.3.21"
 edition = "2024"
 rust-version = "1.91"
 description = "Raw WebAssembly exports for SafeImage layer 1 (PDQ): bytes in, bytes out, no imports."
