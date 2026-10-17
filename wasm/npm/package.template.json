@@ -1,0 +1,27 @@
+{
+  "name": "@thinkersjournal/safeimage",
+  "description": "SafeImage WebAssembly layers 1 to 4: bytes in, bytes out, no imports.",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": { "types": "./index.d.ts", "default": "./index.js" },
+    "./safeimage_wasm.wasm": "./safeimage_wasm.wasm"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "safeimage_wasm.wasm",
+    "PROVENANCE.json",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "NOTICE",
+    "README.md"
+  ],
+  "license": "(MIT OR Apache-2.0) AND BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThinkersJournal/SafeImage.git"
+  },
+  "publishConfig": { "access": "public", "provenance": true }
+}

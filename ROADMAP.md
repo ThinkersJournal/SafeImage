@@ -19,7 +19,7 @@ The repository is public; the flip left is "a consumer can depend on a published
 |---|---|---|---|
 | F1 | Registry and who publishes (Q8): crates.io, the PM publishes at the first code release | CireSnave, board 174 | **ruled 2026-10-16** |
 | F2 | Where profiles live (Q9): deploy-time operator configuration, never a public repository | CireSnave, board 174 | **ruled 2026-10-16** |
-| F3 | How a TypeScript consumer obtains the WASM (Q10): an npm package built from the CI artifact (plan: `docs/NPM-PACKAGE.md`) | CireSnave, board 174 | **ruled 2026-10-16**; CI job not built |
+| F3 | How a TypeScript consumer obtains the WASM (Q10): an npm package built from the CI artifact (plan: `docs/NPM-PACKAGE.md`) | CireSnave, board 174 | **ruled 2026-10-16**; CI job `npm-package` built (0.3.20), publish not built |
 | F4 | Written answer on naming the hash-match provider in public text (G4) | CireSnave | open |
 | F5 | Provenance close-out (portfolio rule 6.4a); the derived list is below | this lane, PM at gate | done: P1 and P2 landed in 0.3.11 |
 | F6 | Merge #15 (`publish = false` removed, package metadata) and publish | PM, from a clean `git archive` of `main` | draft, held |
