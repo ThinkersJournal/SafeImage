@@ -2,6 +2,7 @@ use super::*;
 use crate::codec::{decode_outcome, decode_outcomes, encode_outcome, encode_outcomes};
 use safeimage::matcher::{
     Classification, CleanBasis, Digest, KnownMatch, MatchDetail, MatchOutcome, MatchType,
+    Unavailable, strongest,
 };
 
 fn clean() -> MatchOutcome {

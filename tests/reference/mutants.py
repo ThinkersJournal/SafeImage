@@ -99,10 +99,10 @@ MUTANTS = [
 
 
 WASM_MUTANTS = [
-    ("wasm quality byte position", "wasm/src/lib.rs", "out[32] = result.quality;", "out[31] = result.quality;"),
-    ("wasm dihedral stride", "wasm/src/lib.rs", "out[i * 32..i * 32 + 32].copy_from_slice(&h.to_bytes());", "out[i * 32..i * 32 + 32].copy_from_slice(&result.hashes[0].to_bytes());"),
-    ("wasm length error code", "wasm/src/lib.rs", "FrameError::LengthMismatch { .. } => ERR_LENGTH_MISMATCH,", "FrameError::LengthMismatch { .. } => ERR_TOO_LARGE,"),
-    ("wasm null-pointer code", "wasm/src/lib.rs", "pub const ERR_NULL_POINTER: i32 = -4;", "pub const ERR_NULL_POINTER: i32 = -5;"),
+    ("wasm quality byte position", "wasm/src/abi.rs", "out[32] = result.quality;", "out[31] = result.quality;"),
+    ("wasm dihedral stride", "wasm/src/abi.rs", "out[i * 32..i * 32 + 32].copy_from_slice(&h.to_bytes());", "out[i * 32..i * 32 + 32].copy_from_slice(&result.hashes[0].to_bytes());"),
+    ("wasm length error code", "wasm/src/abi.rs", "FrameError::LengthMismatch { .. } => ERR_LENGTH_MISMATCH,", "FrameError::LengthMismatch { .. } => ERR_TOO_LARGE,"),
+    ("wasm null-pointer code", "wasm/src/abi.rs", "pub const ERR_NULL_POINTER: i32 = -4;", "pub const ERR_NULL_POINTER: i32 = -5;"),
     ("wasm byte order", "src/hash/hash256.rs", "word.to_le_bytes()", "word.to_be_bytes()"),
 ]
 
