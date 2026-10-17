@@ -4,6 +4,12 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.22] - 2026-10-17
+
+### Docs
+- `ROADMAP.md`: A7 (remove the `dead_code` allow in `tests/support`) and A8 (narrow the `unsafe_code` allow in
+  the WASM crate) added; both allows are reasoned last resorts until then.
+
 ## [0.3.21] - 2026-10-17
 
 ### Tests
