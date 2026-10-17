@@ -4,6 +4,15 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.20] - 2026-10-17
+
+### CI
+- `npm-package` job: packs the module that `wasm-artifact` checked into `@thinkersjournal/safeimage`
+  (`wasm/npm/`: loader, types, README, `build.mjs`), with a `PROVENANCE.json` (commit, run URL, module
+  SHA-256, ABI version read from the module, compiler). The tarball is checked to hold exactly the listed files
+  and the artifact's bytes, scanned for forbidden patterns, and uploaded as a build artifact. It does not
+  publish and holds no token.
+
 ## [0.3.18] - 2026-10-16
 
 ### Docs
