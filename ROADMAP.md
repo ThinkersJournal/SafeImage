@@ -22,7 +22,7 @@ The repository is public; the flip left is "a consumer can depend on a published
 | F3 | How a TypeScript consumer obtains the WASM (Q10): an npm package built from the CI artifact (plan: `docs/NPM-PACKAGE.md`) | CireSnave, board 174 | **ruled 2026-10-16**; CI job `npm-package` built (0.3.20), publish not built |
 | F4 | Written answer on naming the hash-match provider in public text (G4) | CireSnave, board 222 | **ruled 2026-10-22: neutral until the provider consents in writing.** Nothing public names a provider; CI enforces it. Not a gate for the first release |
 | F5 | Provenance close-out (portfolio rule 6.4a); the derived list is below | this lane, PM at gate | done: P1 and P2 landed in 0.3.11 |
-| F6 | Merge #15 (`publish = false` removed, package metadata) and publish | PM, from a clean `git archive` of `main` | draft, held |
+| F6 | Merge #15 (`publish = false` removed, package metadata), then the PM publishes the crate from a clean `git archive` of `main`; CireSnave approves the npm run | PM, CireSnave | #15 ready, awaiting gate |
 
 ### F5: provenance, derived from rule 6.4a against this tree (2026-10-14, `main` 587226a)
 
