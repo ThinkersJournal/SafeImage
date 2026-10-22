@@ -1,5 +1,4 @@
 export declare const ABI_VERSION: 4;
-export declare const wasmUrl: URL;
 
 /** The module's raw exports: linear memory plus the `si_*` functions (docs/WASM-BOUNDARY.md). */
 export interface SafeImageExports {

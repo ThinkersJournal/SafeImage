@@ -8,7 +8,7 @@ are not available to this repository, and publishing is the PM's.
 
 | | |
 |---|---|
-| **Contents** | `safeimage_wasm.wasm` (the CI artifact, byte for byte), `index.js`, `loader.js`, `safeimage.js`, `codec.js` and `index.d.ts` (the loader, the typed wrapper, the encodings and the types; see "The typed wrapper"), `PROVENANCE.json`, `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE`, `README.md` |
+| **Contents** | `safeimage_wasm.wasm` (the CI artifact, byte for byte), `index.js`, `loader.js`, `safeimage.js`, `codec.js`, `node.js` and `index.d.ts` / `node.d.ts` (the loader, the typed wrapper, the encodings, a Node-only path helper and the types; see "The typed wrapper"), `PROVENANCE.json`, `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE`, `README.md` |
 | **Name** | proposed `@thinkersjournal/safeimage` (a scope, so the name cannot be squatted). Needs the npm organisation to exist: a question for the PM, not decided here |
 | **Version** | equal to the workspace version in `Cargo.toml` (one number per project). The job fails if `package.json` and `Cargo.toml` differ |
 | **Scope** | layers 1 to 4 only (layer 5 stays Rust-only). No provider or destination specifics: those are deploy-time operator configuration (Q9) |
@@ -25,6 +25,7 @@ dependencies), in three files:
 | `loader.js` | `instantiate` and `ABI_VERSION`: compiles, instantiates with no imports, checks the ABI version |
 | `codec.js` | the encodings of `docs/WASM-BOUNDARY.md` section 3 (`encode*` / `decode*`), `SafeImageError` and `CODES` |
 | `safeimage.js` | the `SafeImage` class: one method per `si_*` export, owning alloc, copy, call, copy out and free |
+| `node.js` | `wasmUrl`, the module's path, for Node hosts only: a separate subpath (`@thinkersjournal/safeimage/node`) so the main entry never uses `import.meta`, which a worker bundler rejects (Community's workerd gate; `build.mjs` fails if a main-entry file uses it). A worker imports `@thinkersjournal/safeimage/safeimage_wasm.wasm` for a compiled module |
 
 Rules the wrapper keeps, each tested by `wasm/npm/test.mjs`:
 

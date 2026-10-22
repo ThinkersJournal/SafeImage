@@ -53,7 +53,7 @@ writeFileSync(
   JSON.stringify({ commit, workflow_run_url: runUrl, wasm_sha256: sha256, abi_version: abi, rustc }, null, 2) + "\n",
 );
 copyFileSync(wasmPath, join(stage, "safeimage_wasm.wasm"));
-for (const f of ["index.js", "loader.js", "safeimage.js", "codec.js", "index.d.ts", "README.md"]) copyFileSync(join(here, f), join(stage, f));
+for (const f of ["index.js", "loader.js", "safeimage.js", "codec.js", "node.js", "node.d.ts", "index.d.ts", "README.md"]) copyFileSync(join(here, f), join(stage, f));
 for (const f of ["LICENSE-MIT", "LICENSE-APACHE", "NOTICE"]) copyFileSync(join(root, f), join(stage, f));
 
 // npm 10 prints an array of results, npm 12 an object keyed by package name.
@@ -65,15 +65,20 @@ const packed = Array.isArray(result) ? result[0] : Object.values(result)[0];
 // The tarball holds exactly the listed files, and its .wasm is the artifact's.
 const expected = [
   "LICENSE-APACHE", "LICENSE-MIT", "NOTICE", "PROVENANCE.json", "README.md",
-  "codec.js", "index.d.ts", "index.js", "loader.js", "package.json", "safeimage.js", "safeimage_wasm.wasm",
+  "codec.js", "index.d.ts", "index.js", "loader.js", "node.d.ts", "node.js", "package.json", "safeimage.js", "safeimage_wasm.wasm",
 ];
 assert.deepEqual(packed.files.map((f) => f.path).sort(), expected, "unexpected tarball contents");
 // Run tar from the output directory with a relative name: GNU tar reads "C:" in an absolute Windows path as a host.
 const inTar = execFileSync("tar", ["-xzOf", packed.filename, "package/safeimage_wasm.wasm"], { cwd: outDir, maxBuffer: 1 << 28 });
 assert.equal(createHash("sha256").update(inTar).digest("hex"), sha256, "tarball .wasm differs from the artifact");
 
+// The main entry point must bundle for a worker (Community's workerd gate): no file it loads may use import.meta.
+for (const f of ["index.js", "loader.js", "safeimage.js", "codec.js"]) {
+  assert.ok(!readFileSync(join(stage, f), "utf8").includes("import.meta"), `${f} uses import.meta; that belongs in node.js`);
+}
 // The packed files work as a consumer would load them: import the entry point, instantiate the packed module.
-const smoke = `import { SafeImage, wasmUrl } from ${JSON.stringify(pathToFileURL(join(stage, "index.js")).href)};
+const smoke = `import { SafeImage } from ${JSON.stringify(pathToFileURL(join(stage, "index.js")).href)};
+import { wasmUrl } from ${JSON.stringify(pathToFileURL(join(stage, "node.js")).href)};
 import { readFileSync } from "node:fs";
 const si = await SafeImage.create(readFileSync(wasmUrl));
 if (si.abiVersion !== ${abi}) throw new Error("abi");

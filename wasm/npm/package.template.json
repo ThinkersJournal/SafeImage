@@ -6,6 +6,7 @@
   "types": "index.d.ts",
   "exports": {
     ".": { "types": "./index.d.ts", "default": "./index.js" },
+    "./node": { "types": "./node.d.ts", "default": "./node.js" },
     "./safeimage_wasm.wasm": "./safeimage_wasm.wasm"
   },
   "files": [
@@ -13,6 +14,8 @@
     "loader.js",
     "safeimage.js",
     "codec.js",
+    "node.js",
+    "node.d.ts",
     "index.d.ts",
     "safeimage_wasm.wasm",
     "PROVENANCE.json",

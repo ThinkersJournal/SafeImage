@@ -6,7 +6,8 @@ Bytes in, bytes out, no imports. The calling convention and the encodings are in
 pointers, no byte layouts for the host to write) and the encodings the wrapper uses. No dependencies.
 
 ```ts
-import { SafeImage, SafeImageError, wasmUrl } from "@thinkersjournal/safeimage";
+import { SafeImage, SafeImageError } from "@thinkersjournal/safeimage";
+import { wasmUrl } from "@thinkersjournal/safeimage/node"; // Node only: a worker imports the .wasm itself
 import { readFile } from "node:fs/promises";
 
 const si = await SafeImage.create(await readFile(wasmUrl)); // or a compiled WebAssembly.Module

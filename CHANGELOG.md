@@ -11,7 +11,7 @@ change raises the second number (0.1.x to 0.2.0).
   `si_*` export for layers 1 to 4 (`pdq`, `strongest`, `retryDecide`, `reportNew`, `reportApply`,
   `caseConfirm`, `preserveUntil`, ...) with `index.d.ts` types, a thrown `SafeImageError` for every refusal, and
   the `encode*` / `decode*` functions it uses. New files in the package: `loader.js` (the old `index.js` body),
-  `safeimage.js`, `codec.js`; `index.js` re-exports all of them, so `instantiate` and `ABI_VERSION` are unchanged.
+  `safeimage.js`, `codec.js`; `index.js` re-exports all of them, so `instantiate` and `ABI_VERSION` are unchanged. `wasmUrl` moved to the Node-only subpath `@thinkersjournal/safeimage/node` (`node.js`): the main entry no longer uses `import.meta`, so it bundles for a worker; `build.mjs` fails if it does.
 - `wasm/npm/test.mjs` replays all three conformance vector files through the typed API; CI runs it in the
   `wasm-artifact` job. `build.mjs` smoke-imports the packed entry point. `docs/NPM-PACKAGE.md` describes the wrapper.
 

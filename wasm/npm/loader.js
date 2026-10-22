@@ -4,9 +4,6 @@
 /** ABI version this package was built against; `instantiate` refuses a module that reports another. */
 export const ABI_VERSION = 4;
 
-/** Location of the module inside this package. */
-export const wasmUrl = new URL("./safeimage_wasm.wasm", import.meta.url);
-
 /**
  * @param {BufferSource | WebAssembly.Module} source the module's bytes, or an already compiled module
  *   (a worker host compiles it at deploy time and passes it in).
