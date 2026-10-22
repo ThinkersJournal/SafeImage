@@ -1,8 +1,8 @@
 # npm package for the WebAssembly layers
 
 Ruled 2026-10-16 (board 174, Q10): a TypeScript consumer gets an npm package built from the CI artifact,
-not a vendored `.wasm`. This note describes the CI job. **Nothing here publishes**: the npm account and token
-are not available to this repository, and publishing is the PM's.
+not a vendored `.wasm`. This note describes the CI job and the publish workflow. No token is stored in this repository: publishing is by
+npm trusted publishing (OIDC), approved per run by CireSnave.
 
 ## What the package is
 
@@ -61,15 +61,36 @@ Runs after `wasm-artifact` in `.github/workflows/ci.yml`, on every push and pull
 
 `download-artifact` is pinned to a full commit SHA, as `upload-artifact` is.
 
-## Publishing (not built yet)
+## Publishing: `.github/workflows/npm-publish.yml` (built, 0.3.26)
 
-A separate job, manual (`workflow_dispatch` on a release tag) and never on pull requests, would run
-`npm publish --provenance --access public` with `id-token: write`, so the registry records the
-workflow run and commit that built the tarball. Prerequisites, all open:
+npm trusted publishing (OIDC): **no token is stored anywhere**. The registry trusts one workflow file
+(`npm-publish.yml`, bound with `npm trust github`, so the file must not be renamed) running in the
+`npm-publish` environment, and exchanges the run's OIDC identity for a one-run credential. It runs only when
+a `v*` tag is pushed and only after the environment's required reviewer (CireSnave) approves; the environment
+admits `v*` tags only. Steps, in order, each failing the run:
 
-- the npm organisation and a publish credential, held by the PM and not by this repository's code;
-- the first code release of the crate on crates.io (Q8), so both go out at one version;
-- F4 answered, since the README text ships in the package.
+1. The tag equals `v<version in Cargo.toml>`, and the tagged commit is an ancestor of `origin/main`.
+2. npm is 11.5.1 or newer (the first version that publishes by OIDC), checked before the registry is touched.
+3. Build the module, then run `wasm/test.mjs` (reference fixtures, error codes) and `wasm/npm/test.mjs` (the
+   typed wrapper over every conformance vector) against it. This repeats `wasm-artifact` on the tagged commit.
+4. `wasm/npm/build.mjs` packs it (the same script CI runs), then the vendor scan with its planted control.
+5. `npm publish <tgz> --provenance --access public`. `id-token: write` is granted to this one job only.
+6. Read the registry back: `dist.integrity` of the published version must equal the SHA-512 of the tarball built here.
+   An exit code is not a state read.
+
+The sequence for a release is the PM's: the crates.io release and the npm publish go out at one version (Q8,
+Q10). The PM publishes the crate; CireSnave approves the npm run. A tag that no reviewer approves publishes nothing.
+
+### F4 is not a gate (ruled 2026-10-22)
+
+CireSnave, on board decision 222: *"I'm still waiting to hear back from [the provider] about naming them.  If
+they say no, we can't."* (the name is withheld here on purpose) Until a provider agrees in writing, nothing public names a provider or a report
+destination, and the package text (README, comments, types) names none. The CI job `No credentials or provider
+names in the tree` enforces this on every tracked file (README, docs, CHANGELOG, comments, package sources), and
+the `npm-package` job and the publish workflow repeat the scan on the tarball. Both run a planted-name control, so
+a pattern that stopped matching fails the job. The denylist is `.github/forbidden-patterns.txt`, written as
+character classes so it does not itself spell what it forbids. If a provider consents, the wording is a new
+ruling and a new PR.
 
 ## Consumer check
 

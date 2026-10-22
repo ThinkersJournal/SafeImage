@@ -20,7 +20,7 @@ The repository is public; the flip left is "a consumer can depend on a published
 | F1 | Registry and who publishes (Q8): crates.io, the PM publishes at the first code release | CireSnave, board 174 | **ruled 2026-10-16** |
 | F2 | Where profiles live (Q9): deploy-time operator configuration, never a public repository | CireSnave, board 174 | **ruled 2026-10-16** |
 | F3 | How a TypeScript consumer obtains the WASM (Q10): an npm package built from the CI artifact (plan: `docs/NPM-PACKAGE.md`) | CireSnave, board 174 | **ruled 2026-10-16**; CI job `npm-package` built (0.3.20), publish not built |
-| F4 | Written answer on naming the hash-match provider in public text (G4) | CireSnave | open |
+| F4 | Written answer on naming the hash-match provider in public text (G4) | CireSnave, board 222 | **ruled 2026-10-22: neutral until the provider consents in writing.** Nothing public names a provider; CI enforces it. Not a gate for the first release |
 | F5 | Provenance close-out (portfolio rule 6.4a); the derived list is below | this lane, PM at gate | done: P1 and P2 landed in 0.3.11 |
 | F6 | Merge #15 (`publish = false` removed, package metadata) and publish | PM, from a clean `git archive` of `main` | draft, held |
 
@@ -44,7 +44,7 @@ Closed in 0.3.11 (kept for the record):
 | P1 | The vetting record proves equality by outputs (reference fixtures, mutation suite) but has no per-file list of how each port **differs** from its upstream file, which rule 6.4a asks for | Done: `docs/provenance/pdq-vetting.md` section 9 |
 | P2 | `NOTICE` still speaks of derived files in the future tense ("will carry") | Done: `NOTICE` reads in the present tense |
 
-Until F1 to F4 have written answers, nothing in this repository names a provider or a report destination.
+Nothing in this repository names a provider or a report destination, and nothing will until a provider agrees in writing (F4); CI enforces it.
 
 ## Adoption
 
@@ -68,7 +68,7 @@ Scoping that is Humboldt's lane to start; this item stays open until it does.
 
 ## Work in this repository, in order
 
-Items not blocked by F1 to F4 are marked **ready**.
+Items not blocked by F1 to F3 are marked **ready**.
 
 | # | Item | Why | State |
 |---|---|---|---|
@@ -82,7 +82,7 @@ Items not blocked by F1 to F4 are marked **ready**.
 | A7 | Remove the `#![allow(dead_code)]` in `tests/support/mod.rs`: it is shared by several test crates that each use a subset (`make`, `FRAMES`, `dct_input`, `torben_cases`). Cure: make it a `publish = false` workspace member that the tests depend on (its `pub` items are then not dead code in any test crate), or split it per consumer; not another allow | CodeRipper `lint-suppression` | **done** (0.3.24) |
 | A8 | Narrow the crate-level `#![allow(unsafe_code)]` in `wasm/src/lib.rs`: `unsafe` occurs only in `lib.rs` and `evidence.rs` (the pointer-taking `extern "C"` exports and `input_slice`). Cure: drop the crate-level allow and put `#[allow(unsafe_code, reason = ...)]` on those items or on one small `mod abi`, so a new `unsafe` anywhere else fails the build. The exports themselves need `unsafe` for the C ABI and cannot be removed | CodeRipper `lint-suppression` | **done** (0.3.23) |
 | A9 | Typed TypeScript wrapper in the npm package (encode, call, decode over `si_*`), so Community does not write a private copy | PM ruling 2026-10-22 (board 228) | **done** (0.3.25); next: A10 |
-| A10 | OIDC trusted-publishing job `npm-publish.yml` (release tag, `id-token: write`, `npm publish --provenance --access public`), disabled until F4 | PM, 2026-10-22 | open |
+| A10 | OIDC trusted-publishing job `npm-publish.yml` (release tag, `id-token: write`, `npm publish --provenance --access public`, environment `npm-publish`) | PM, 2026-10-22 | **done** (0.3.26) |
 
 ## Not on this roadmap
 
