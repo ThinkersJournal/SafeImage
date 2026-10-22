@@ -84,6 +84,9 @@ jobs:
       - name: Check the module (imports, exports, fixtures, error codes)
         run: node wasm/test.mjs target/wasm32-unknown-unknown/release/safeimage_wasm.wasm "$RUNNER_TEMP/frames" tests/fixtures/reference.txt
 
+      - name: Replay the conformance vectors through the typed wrapper
+        run: node wasm/npm/test.mjs target/wasm32-unknown-unknown/release/safeimage_wasm.wasm
+
       - name: Upload the module
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

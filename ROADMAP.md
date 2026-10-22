@@ -81,6 +81,8 @@ Items not blocked by F1 to F4 are marked **ready**.
 | A6 | 0.4.0 or 1.0 stability decision: which enums stay exhaustive, what is frozen | Only after a consumer has used the API | after first adoption |
 | A7 | Remove the `#![allow(dead_code)]` in `tests/support/mod.rs`: it is shared by several test crates that each use a subset (`make`, `FRAMES`, `dct_input`, `torben_cases`). Cure: make it a `publish = false` workspace member that the tests depend on (its `pub` items are then not dead code in any test crate), or split it per consumer; not another allow | CodeRipper `lint-suppression` | **done** (0.3.24) |
 | A8 | Narrow the crate-level `#![allow(unsafe_code)]` in `wasm/src/lib.rs`: `unsafe` occurs only in `lib.rs` and `evidence.rs` (the pointer-taking `extern "C"` exports and `input_slice`). Cure: drop the crate-level allow and put `#[allow(unsafe_code, reason = ...)]` on those items or on one small `mod abi`, so a new `unsafe` anywhere else fails the build. The exports themselves need `unsafe` for the C ABI and cannot be removed | CodeRipper `lint-suppression` | **done** (0.3.23) |
+| A9 | Typed TypeScript wrapper in the npm package (encode, call, decode over `si_*`), so Community does not write a private copy | PM ruling 2026-10-22 (board 228) | **done** (0.3.25); next: A10 |
+| A10 | OIDC trusted-publishing job `npm-publish.yml` (release tag, `id-token: write`, `npm publish --provenance --access public`), disabled until F4 | PM, 2026-10-22 | open |
 
 ## Not on this roadmap
 
