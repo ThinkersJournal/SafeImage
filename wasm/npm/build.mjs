@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync } from "no
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { join, dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
 
 const [wasmPath, outArg, commit, runUrl, rustc] = process.argv.slice(2);
@@ -36,10 +36,10 @@ const sha256 = createHash("sha256").update(wasm).digest("hex");
 const mod = new WebAssembly.Module(wasm);
 assert.deepEqual(WebAssembly.Module.imports(mod), [], "module must have no imports");
 const abi = new WebAssembly.Instance(mod, {}).exports.si_abi_version();
-const loader = readFileSync(join(here, "index.js"), "utf8");
+const loader = readFileSync(join(here, "loader.js"), "utf8");
 const declared = /export const ABI_VERSION = (\d+);/.exec(loader);
-assert.ok(declared, "index.js declares no ABI_VERSION");
-assert.equal(Number(declared[1]), abi, "index.js ABI_VERSION differs from the module's");
+assert.ok(declared, "loader.js declares no ABI_VERSION");
+assert.equal(Number(declared[1]), abi, "loader.js ABI_VERSION differs from the module's");
 
 rmSync(outDir, { recursive: true, force: true });
 const stage = join(outDir, "package");
@@ -53,7 +53,7 @@ writeFileSync(
   JSON.stringify({ commit, workflow_run_url: runUrl, wasm_sha256: sha256, abi_version: abi, rustc }, null, 2) + "\n",
 );
 copyFileSync(wasmPath, join(stage, "safeimage_wasm.wasm"));
-for (const f of ["index.js", "index.d.ts", "README.md"]) copyFileSync(join(here, f), join(stage, f));
+for (const f of ["index.js", "loader.js", "safeimage.js", "codec.js", "index.d.ts", "README.md"]) copyFileSync(join(here, f), join(stage, f));
 for (const f of ["LICENSE-MIT", "LICENSE-APACHE", "NOTICE"]) copyFileSync(join(root, f), join(stage, f));
 
 // npm 10 prints an array of results, npm 12 an object keyed by package name.
@@ -65,11 +65,19 @@ const packed = Array.isArray(result) ? result[0] : Object.values(result)[0];
 // The tarball holds exactly the listed files, and its .wasm is the artifact's.
 const expected = [
   "LICENSE-APACHE", "LICENSE-MIT", "NOTICE", "PROVENANCE.json", "README.md",
-  "index.d.ts", "index.js", "package.json", "safeimage_wasm.wasm",
+  "codec.js", "index.d.ts", "index.js", "loader.js", "package.json", "safeimage.js", "safeimage_wasm.wasm",
 ];
 assert.deepEqual(packed.files.map((f) => f.path).sort(), expected, "unexpected tarball contents");
 // Run tar from the output directory with a relative name: GNU tar reads "C:" in an absolute Windows path as a host.
 const inTar = execFileSync("tar", ["-xzOf", packed.filename, "package/safeimage_wasm.wasm"], { cwd: outDir, maxBuffer: 1 << 28 });
 assert.equal(createHash("sha256").update(inTar).digest("hex"), sha256, "tarball .wasm differs from the artifact");
+
+// The packed files work as a consumer would load them: import the entry point, instantiate the packed module.
+const smoke = `import { SafeImage, wasmUrl } from ${JSON.stringify(pathToFileURL(join(stage, "index.js")).href)};
+import { readFileSync } from "node:fs";
+const si = await SafeImage.create(readFileSync(wasmUrl));
+if (si.abiVersion !== ${abi}) throw new Error("abi");
+if (si.classifyStatus(200) !== null || si.classifyStatus(429) !== "Throttled") throw new Error("classify");`;
+execFileSync(process.execPath, ["--input-type=module", "-e", smoke], { stdio: "inherit" });
 
 console.log(`built ${packed.filename} (version ${version}, abi ${abi}, wasm sha256 ${sha256})`);

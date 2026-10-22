@@ -1,6 +1,6 @@
 {
   "name": "@thinkersjournal/safeimage",
-  "description": "SafeImage WebAssembly layers 1 to 4: bytes in, bytes out, no imports.",
+  "description": "SafeImage WebAssembly layers 1 to 4 with a typed wrapper: no imports, no dependencies.",
   "type": "module",
   "main": "index.js",
   "types": "index.d.ts",
@@ -10,6 +10,9 @@
   },
   "files": [
     "index.js",
+    "loader.js",
+    "safeimage.js",
+    "codec.js",
     "index.d.ts",
     "safeimage_wasm.wasm",
     "PROVENANCE.json",
