@@ -4,6 +4,18 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.26] - 2026-10-22
+
+### Added
+- `.github/workflows/npm-publish.yml`: publishes the npm package by npm trusted publishing (OIDC, no stored token) on a
+  `v*` tag, in the `npm-publish` environment (required reviewer, `v*` tags only). It checks the tag against the crate
+  version and `main`, rebuilds and re-checks the module and the typed wrapper, scans the tarball, runs
+  `npm publish --provenance --access public`, then reads the registry's integrity back against the tarball. Roadmap A10.
+
+### Changed
+- F4 is ruled (2026-10-22, CireSnave): nothing public names a provider until one consents in writing, and F4 no longer
+  gates the first release. `ROADMAP.md` and `docs/NPM-PACKAGE.md` say so; the existing CI scan enforces it.
+
 ## [0.3.25] - 2026-10-22
 
 ### Added

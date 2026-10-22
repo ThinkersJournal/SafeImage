@@ -1,0 +1,104 @@
+name: npm publish
+
+# Publishes @thinkersjournal/safeimage to npm with provenance, by npm trusted publishing (OIDC): no token is
+# stored anywhere. Runs only on a version tag and only after the `npm-publish` environment's required reviewer
+# approves (docs/NPM-PACKAGE.md). The file name is what `npm trust github` binds to, so do not rename it.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    name: Build, check and publish the npm package
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write # the OIDC token npm exchanges for a one-run publish credential, and the provenance statement
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: The tag is v<crate version> and its commit is on main
+        run: |
+          set -o pipefail
+          ver="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)"
+          test -n "$ver"
+          test "$GITHUB_REF_NAME" = "v$ver" || { echo "::error::tag $GITHUB_REF_NAME is not v$ver"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::$GITHUB_SHA is not on main"; exit 1; }
+          echo "VERSION=$ver" >> "$GITHUB_ENV"
+
+      - name: Install Rust with the wasm32 target
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      # Pinned to a full commit SHA (the tag v7.1.0, read from the action's repository on 2026-10-22).
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      # Trusted publishing needs npm 11.5.1 or newer; fail here rather than at the registry.
+      - name: npm is new enough for trusted publishing
+        run: |
+          v="$(npm --version)"
+          echo "npm $v"
+          printf '%s\n11.5.1\n' "$v" | sort -V -C -r || { echo "::error::npm $v is older than 11.5.1"; exit 1; }
+
+      - name: Build the module
+        run: cargo build -p safeimage-wasm --release --target wasm32-unknown-unknown
+
+      - name: Check the module (imports, exports, fixtures, error codes, typed wrapper)
+        run: |
+          SAFEIMAGE_FRAMES_DIR="$RUNNER_TEMP/frames" cargo test --test write_frames -- --ignored
+          node wasm/test.mjs target/wasm32-unknown-unknown/release/safeimage_wasm.wasm "$RUNNER_TEMP/frames" tests/fixtures/reference.txt
+          node wasm/npm/test.mjs target/wasm32-unknown-unknown/release/safeimage_wasm.wasm
+
+      - name: Build the tarball
+        run: |
+          node wasm/npm/build.mjs target/wasm32-unknown-unknown/release/safeimage_wasm.wasm "$RUNNER_TEMP/npm" \
+            "$GITHUB_SHA" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$(rustc --version)"
+
+      - name: Scan the text files in the tarball
+        run: |
+          set -o pipefail
+          pats="$RUNNER_TEMP/pats.txt"
+          grep -v -E '^(#|$)' .github/forbidden-patterns.txt > "$pats"
+          test -s "$pats"
+          mkdir "$RUNNER_TEMP/unpacked"
+          tar -xzf "$RUNNER_TEMP"/npm/*.tgz -C "$RUNNER_TEMP/unpacked"
+          # Positive control: a planted vendor name must be found.
+          printf 'ara%shnid\n' c > "$RUNNER_TEMP/control.txt"
+          grep -q -i -E -f "$pats" "$RUNNER_TEMP/control.txt"
+          if grep -r -I -n -i -E -f "$pats" "$RUNNER_TEMP/unpacked"; then
+            echo "::error::forbidden pattern in the tarball (see above)"; exit 1
+          fi
+
+      # No NODE_AUTH_TOKEN and no registry-url: npm uses the OIDC identity of this workflow file and environment.
+      - name: Publish
+        run: |
+          set -o pipefail
+          tgz="$(ls "$RUNNER_TEMP"/npm/*.tgz)"
+          test "$(echo "$tgz" | wc -l)" -eq 1
+          npm publish "$tgz" --provenance --access public
+
+      # An exit code is not a state read: read the registry back and compare it with the tarball we built.
+      - name: The registry holds the tarball we built
+        run: |
+          set -o pipefail
+          tgz="$(ls "$RUNNER_TEMP"/npm/*.tgz)"
+          want="sha512-$(openssl dgst -sha512 -binary "$tgz" | base64 -w0)"
+          for i in 1 2 3 4 5 6; do
+            got="$(npm view "@thinkersjournal/safeimage@$VERSION" dist.integrity 2>/dev/null || true)"
+            [ "$got" = "$want" ] && { echo "registry integrity matches: $got"; exit 0; }
+            sleep 10
+          done
+          echo "::error::registry has '$got', tarball is '$want'"; exit 1
