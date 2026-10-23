@@ -4,6 +4,11 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.28] - 2026-10-23
+
+### Added
+- `portfolio` job in CI: the advisory CodeRipper portfolio check (reusable workflow pinned to a commit SHA). It is not a required check and silences no rule.
+
 ## [0.3.27] - 2026-10-22
 
 ### Packaging
