@@ -232,3 +232,9 @@ jobs:
              | xargs -0 grep -n -i -E -f "$pats"; then
             echo "::error::forbidden pattern found (see above)"; exit 1
           fi
+
+  # Advisory portfolio check (CireSnave 2026-10-23): reported, not a required check; no rule is silenced.
+  portfolio:
+    permissions:
+      contents: read
+    uses: ciresnave/coderipper/.github/workflows/portfolio.yml@c665210ad0972cf3ddb7bc81bdd7800c3248a938
