@@ -1,7 +1,8 @@
 # SafeImage: crate boundary
 
-**Status:** 0.1.0, design only. Nothing in this document is built. Written 2026-10-10 by the SafeImage lane, for
-the PM's gate and for the Community lane to agree the first move against (STEP 2).
+**Status:** written 2026-10-10 as the 0.1.0 design, before any code, for the PM's gate and for the Community lane to
+agree the first move against (STEP 2). Layers 1 to 5 are now built (see `ROADMAP.md` and `CHANGELOG.md`); a line below
+that the code does not match is a row in `ROADMAP.md` (A15 to A21), open until it is built or retracted.
 
 **What this decides:** what is inside the crate, what stays in the applications that use it, and the interfaces
 between them. It does not decide implementation order inside a layer or any wire detail the sources already fix.
@@ -88,7 +89,7 @@ dependencies beyond `core`/`alloc`. Higher layers add only what they need; no la
   platform image-transform API, the `image` crate, anything); the crate never sees a container format.
 - `pdq(frame) -> Pdq { hash: Hash256, quality: u8 }` and `pdq_dihedral(frame) -> [Pdq; 8]` (the eight
   orientations from one DCT, as the reference does).
-- `Hash256`: 32 bytes, `hamming(&Hash256) -> u32`, base64 and hex codecs (the provider interface takes base64).
+- `Hash256`: 32 bytes, `hamming_distance(&Hash256) -> u32`, base64 and hex codecs (the provider interface takes base64).
 - Constants as **named, overridable defaults**, never hidden literals: `MATCH_DISTANCE_DEFAULT = 31`,
   `QUALITY_FLOOR_DEFAULT = 49` (the reference's published recommendations; a provider applies its own and
   the crate must not pretend otherwise).
@@ -449,14 +450,13 @@ that and re-reads the terms at each release.
 - No test uses real abusive material, anything claiming to resemble it, or a real hash from a list. Hash tests
   use generated images and reference-implementation outputs for them. Provider tests use `MockMatcher` and a
   recorded-shape fixture written by hand from the public OpenAPI document, never a live call.
-- `cargo deny` (advisories, licences, sources: crates.io only, no `git =` deps) is added with the first
-  dependency; 0.1.0 has none to check.
+- `cargo deny` (advisories, licences, sources: crates.io only, no `git =` deps) is in CI (`libm` is the one dependency).
 
 ## 9. Release and versioning
 
 - One version for the crate (portfolio rule). Pre-1.0 a breaking change raises the **second** number.
-- `publish = false` until the PM and CireSnave release it. The repository stays private; visibility and branch
-  protection are the PM's step.
+- `safeimage` is published to crates.io by the PM (Q8); `safeimage-wasm` stays `publish = false`. The repository is
+  public and `main` is protected.
 - The PM allocates version numbers at gate time; this PR carries 0.1.0 as the repo's first.
 - Dependencies at their latest versions; crates.io sources only.
 

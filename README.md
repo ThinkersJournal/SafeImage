@@ -3,8 +3,8 @@
 Known-image matching, evidence handling and report building for platforms that
 accept image uploads.
 
-**Status: pre-1.0, not yet on crates.io.** All five layers exist and are tested;
-when to publish is the maintainer's decision, not this repository's.
+**Status: pre-1.0, published on crates.io as `safeimage`.** All five layers exist and are tested.
+The WebAssembly module (layers 1 to 4) is built in CI into an npm package (`docs/NPM-PACKAGE.md`).
 The boundary and the reasoning are in [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## What it is for

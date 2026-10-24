@@ -1,7 +1,7 @@
-# WebAssembly boundary for layers 2 to 4: design note (PROPOSAL)
+# WebAssembly boundary for layers 2 to 4: design note
 
 **Status:** encoding ruled by the PM on 2026-10-14 (section 3). Layer 2 exports implemented in 0.3.13 (`wasm/src/codec.rs`, `wasm/vectors/layer2.txt`), layer 4 in 0.3.14 (`wasm/src/report_codec.rs`, `wasm/vectors/layer4.txt`), layer 3 in 0.3.15 (`wasm/src/evidence.rs`, `wasm/src/evidence_codec.rs`, `wasm/vectors/layer3.txt`). The implementation half of A2 is complete; layer 5 (`match_request`, `screen`) is not in this table and stays Rust only. Written against `origin/main`
-0.3.6. It closes roadmap item A2's design half; the implementation is a separate PR after this is agreed.
+0.3.6 as roadmap item A2's design half; the implementation landed in the versions above.
 
 ## 1. The problem
 
@@ -56,7 +56,7 @@ rather than a production surprise. B stays the recorded fallback; adopting it wo
 2. **Fail closed on the decode side too.** An unknown outcome tag decodes to `Unavailable`, never to
    `Clean`; an unknown report answer decodes to `DestinationAnswer::Unknown`. Tested per enum.
 3. **Time is an argument** (`u64` seconds), as in the Rust API.
-4. **ABI version.** `si_abi_version` returns 2 once any of these lands; layer 1's layout is unchanged.
+4. **ABI version.** `si_abi_version` returns 4 at 0.3.33 (it rose as layers 2, 4 and 3 landed); layer 1's layout is unchanged.
 5. **No allocation visible to the host beyond `si_alloc` / `si_free`**, as today, and a documented
    upper bound on input size so the isolate memory limit (128 MB) cannot be reached by a hostile
    buffer (the layer 1 cap is 16.7 million pixels; the new inputs are bytes, not frames).
