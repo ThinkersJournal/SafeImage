@@ -4,6 +4,11 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.32] - 2026-10-24
+
+### Changed
+- CI: the advisory portfolio job is repinned to CodeRipper 0.9.14 (coderipper#142, `d14a22b6`). No code change.
+
 ## [0.3.31] - 2026-10-24
 
 ### Removed
