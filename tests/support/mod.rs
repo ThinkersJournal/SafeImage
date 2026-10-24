@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Deterministic synthetic frames shared by the fixture generator and the tests.
 //!
 //! Integer arithmetic only, so the bytes are identical on every platform. None of these

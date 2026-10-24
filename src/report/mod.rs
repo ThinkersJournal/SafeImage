@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 4: a generic report-filing mechanism. It names no destination.
 //!
 //! A destination is a *profile* kept outside this repository (`docs/DESIGN.md` section 3.6): it

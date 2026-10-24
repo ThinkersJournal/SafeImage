@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Raw WebAssembly exports for SafeImage layer 1.
 //!
 //! No `wasm-bindgen`, no generated glue: the module has **no imports**, so a host instantiates

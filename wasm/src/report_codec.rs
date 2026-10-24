@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Encoding of the layer 4 types that cross the boundary: the persisted `ReportState`, a `Step`,
 //! an `Event` and a `DestinationAnswer`. Same conventions as [`crate::codec`].
 //!

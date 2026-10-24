@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 use core::fmt;
 
 /// Largest frame accepted, in pixels. A frame is hashed through two `f32` planes of this many

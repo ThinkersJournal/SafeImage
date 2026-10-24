@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Checks the built module against the upstream reference fixtures, the way a worker host would
 // use it: compiled module, synchronous instantiation, no imports, bytes in and out.
 //

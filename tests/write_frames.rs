@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Writes the synthetic frames for the reference harness. Ignored by default; run with
 //! `SAFEIMAGE_FRAMES_DIR=<dir> cargo test --test write_frames -- --ignored`.
 

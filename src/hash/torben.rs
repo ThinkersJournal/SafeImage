@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LicenseRef-PublicDomain
 // The following code is public domain.
 // Algorithm by Torben Mogensen, implementation by N. Devillard.
 // This code in public domain.

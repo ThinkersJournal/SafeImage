@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Pre-model screening: the one place a known-hash answer and a classifier signal meet.
 //!
 //! An application that feeds user images to a model (an inference server, an engine) screens each

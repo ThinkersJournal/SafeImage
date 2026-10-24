@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-3-Clause
 // Derived from facebook/ThreatExchange pdq/cpp/hashing/pdqhashing.cpp at commit
 // 07b82cb6e87b7e0ac7fc2a01d865df5db10ee1f2 (blob 82c5e7132c51ae6c7bb73ac645b3903f88b155e1).
 // Original: Copyright (c) Meta Platforms, Inc. and affiliates.

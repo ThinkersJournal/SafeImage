@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-3-Clause
 // The bit layout and the text form follow facebook/ThreatExchange pdq/cpp/common/pdqhashtypes.h
 // and pdqhashtypes.cpp at commit 07b82cb6e87b7e0ac7fc2a01d865df5db10ee1f2
 // (blobs 02051b96eb2d5f38be282a1d97c5acb1a9d48cae and 7e6114c709f78f14829645edee429e8495483ed4).

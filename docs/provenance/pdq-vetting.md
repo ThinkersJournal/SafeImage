@@ -89,7 +89,9 @@ Not in scope, and why:
 1. Port by hand, function for function, in the reference's order, keeping its names in comments.
 2. Each derived file's header names its upstream file, the pinned SHA and Meta's copyright line, or the
    public-domain statement for the median routine.
-3. The licence text goes in `LICENSE` beside the derived files, verbatim, with the root blob SHA above.
+3. The licence text goes in `LICENSE` beside the derived files, verbatim, with the root blob SHA above. The root
+   `LICENSE-BSD-3-Clause` (named by the SPDX expression, shipped in the package) is the same blob; `git hash-object`
+   on both gives `9406c626...`, and CI checks that they stay equal.
 4. `NOTICE` is updated in the same PR as the first derived file.
 5. No third-party Rust or JavaScript PDQ package is used. If one is ever proposed, it is traced to its
    origin first.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 2: asking "is this hash known?", whoever answers.
 //!
 //! Sans-I/O: a provider is a pair of pure functions ([`ProviderProtocol`]) and the host performs

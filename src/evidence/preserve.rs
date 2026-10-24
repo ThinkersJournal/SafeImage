@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 use alloc::vec::Vec;
 
 use crate::report::Status as ReportStatus;

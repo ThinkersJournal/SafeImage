@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! One image through every layer, with scripted stand-ins for the parts that live outside this
 //! repository (a provider profile and a destination profile). Run it with:
 //!

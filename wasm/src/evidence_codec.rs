@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Encoding of the layer 3 types that cross the boundary: evidence states and events, the case
 //! record, the two-person pair, a clear approval and the preservation clocks. Same conventions as
 //! [`crate::codec`].

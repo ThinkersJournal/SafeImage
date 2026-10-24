@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! The C ABI: every `extern "C"` export and the helpers they share. This is the only place in the crate
 //! (with `evidence`) where `unsafe` is allowed; a new `unsafe` anywhere else fails the build.
 

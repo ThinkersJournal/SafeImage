@@ -1,6 +1,6 @@
 [package]
 name = "safeimage"
-version = "0.3.29"
+version = "0.3.30"
 edition = "2024"
 rust-version = "1.91"
 description = "Known-image matching, evidence handling and report building for platforms that accept image uploads."
@@ -19,6 +19,7 @@ include = [
     "/CHANGELOG.md",
     "/LICENSE-MIT",
     "/LICENSE-APACHE",
+    "/LICENSE-BSD-3-Clause",
     "/NOTICE",
     "/docs/DESIGN.md",
     "/docs/provenance/**",

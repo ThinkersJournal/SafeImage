@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! The synthetic frame list shared by the reference test and the fixture generator.
 
 /// (name, width, height, pattern)

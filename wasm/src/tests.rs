@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 use super::*;
 use crate::codec::{decode_outcome, decode_outcomes, encode_outcome, encode_outcomes};
 use safeimage::matcher::{

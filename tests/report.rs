@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 4: the generic report mechanism, driven by a test-double destination that has no real
 //! schema, endpoint or code.
 

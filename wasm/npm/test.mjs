@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Replays the repository's conformance vectors (wasm/vectors/*.txt) through the typed wrapper, so
 // the wrapper's encodings cannot drift from the Rust ones. A vector that expects a refusal code must
 // make the wrapper throw a SafeImageError with that code, whether the encoder or the module refused.

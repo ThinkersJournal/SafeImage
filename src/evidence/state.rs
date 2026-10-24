@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Evidence states of a case file, copied from the first consumer's upload-scan design
 //! section 5.7 (not re-derived): five states, eight transitions, and "no other transition exists".
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! SafeImage: known-image matching, evidence handling and report building.
 //!
 //! All five layers are implemented: [`hash`] (1), [`matcher`] (2), [`evidence`] (3), [`report`] (4)

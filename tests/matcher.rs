@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 2: outcome ordering, the mock, the retry rule and the conformance suite.
 
 use safeimage::hash::Hash256;

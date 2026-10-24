@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 use super::*;
 use crate::report_codec::{decode_state, decode_step, encode_answer, encode_state, encode_step};
 use safeimage::report::{DestinationAnswer, Event, ReportState, Status, Step, apply, next_step};

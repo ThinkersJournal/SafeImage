@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // SafeImage for TypeScript and JavaScript hosts: the loader, the typed wrapper and the encodings.
 // `SafeImage.create(module)` is what most hosts want; `instantiate` returns the raw `si_*` exports.
 // Nothing here computes a URL from the module's own location, so the entry point bundles for a worker; Node

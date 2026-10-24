@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Builds the npm tarball from the CI artifact. It packs; it never publishes (docs/NPM-PACKAGE.md).
 //
 // usage: node wasm/npm/build.mjs <safeimage_wasm.wasm> <out dir> <commit> <workflow run url> <rustc version>
