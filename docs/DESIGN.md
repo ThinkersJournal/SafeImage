@@ -57,7 +57,7 @@ These are properties of the types, not of documentation. Each has a test in the 
 | I5 | **Credentials are opaque.** Secret wrappers have a redacting `Debug`/`Display`, no `Serialize`, and are never read from the environment or disk by the crate. | provider terms (credentials not shared or logged) |
 | I6 | **No image bytes in errors, logs or `Debug` output.** Frames and files are wrapped in a type that prints length only. | upload-scan §10.2 |
 | I7 | **Preservation only grows.** The preservation end date is a pure function of recorded events and is monotonic: no event moves it earlier. | pipeline §5.1, P2, P5 |
-| I8 | **Retention has a named purpose.** Match data held by layer 3 carries a purpose tag; storage adapters can enumerate by it. | provider terms (retention limited to purpose; audit and legal retention named) |
+| I8 | **Retention has a named purpose (planned, not built: ROADMAP A20).** Match data held by layer 3 is to carry a purpose tag that storage adapters can enumerate by. No such type exists yet. | provider terms (retention limited to purpose; audit and legal retention named) |
 | I9 | **Two-person rule is checked in the crate**, not by the caller. One set of operations takes two distinct actor identities or returns an error: CLEAR of a known-hash case, CLEAR of a removal-request case, the `file_without_evidence` decision, setting and lifting an evidence legal hold, and destruction. | pipeline §7.2, §5.3, P7; upload-scan §5.7 |
 
 ---
@@ -77,8 +77,8 @@ Dependency direction is strictly downward in this list, except layer 5, which de
    └──────────────────────────────────────────────────────────────────┘
 ```
 
-Each layer ships as a Cargo feature (`hash`, `matcher`, `evidence`, `report`, `classifier`). `hash` has no
-dependencies beyond `core`/`alloc`. Higher layers add only what they need; no layer pulls a runtime.
+The layers are modules of one crate with no Cargo features (the only feature is `reference-support`, for the
+reference-comparison tests); each layer adds only what it needs, and no layer pulls a runtime.
 
 ### 3.1 Layer 1: hashing and normalisation (pure)
 
@@ -89,15 +89,15 @@ dependencies beyond `core`/`alloc`. Higher layers add only what they need; no la
   platform image-transform API, the `image` crate, anything); the crate never sees a container format.
 - `pdq(frame) -> Pdq { hash: Hash256, quality: u8 }` and `pdq_dihedral(frame) -> [Pdq; 8]` (the eight
   orientations from one DCT, as the reference does).
-- `Hash256`: 32 bytes, `hamming_distance(&Hash256) -> u32`, base64 and hex codecs (the provider interface takes base64).
+- `Hash256`: 32 bytes, `hamming_distance(&Hash256) -> u32`, a hex codec. A profile that needs base64 encodes the 32 bytes itself.
 - Constants as **named, overridable defaults**, never hidden literals: `MATCH_DISTANCE_DEFAULT = 31`,
   `QUALITY_FLOOR_DEFAULT = 49` (the reference's published recommendations; a provider applies its own and
   the crate must not pretend otherwise).
-- Frame normalisation rule (reference downscale to 512 only when a side exceeds 512, no upscale) is specified
-  here as `normalise_geometry(w, h)` so every consumer's decoder is checked against one definition. The
-  first consumer's decoder-service note (native size at or below 512) is the rule.
-- Original-bytes digests (`md5`, `sha1`, `sha256`) of an upload, behind a `legacy-digests` feature because MD5
-  and SHA-1 exist only to compare with lists that use them, never for integrity.
+- Frame normalisation rule (reference downscale to 512 only when a side exceeds 512, no upscale) is not yet
+  a function in this crate (planned, not built: ROADMAP A15); until it is, the rule lives in each host's decoder.
+  The first consumer's decoder-service note (native size at or below 512) is the rule.
+- Original-bytes digests (`md5`, `sha1`) are not provided: no consumer needs them to compare with a list, and
+  they would exist only for that, never for integrity. A host that needs one computes it (ROADMAP A17, retracted).
 
 **Does not:** decode, resize with a library, touch a file, or know what a provider is.
 
@@ -160,9 +160,9 @@ pub enum MatchOutcome {                      // ordered by strength (I2)
 - **Implementations, in dependency order:**
   1. `MockMatcher` (always ships): scripted outcomes, used by every downstream test. Not behind a test cfg, so
      consumers can use it.
-  2. `ListMatcher<S: ListSource>`: local Hamming search over a hash list the *operator* syncs from a
-     source they are credentialed with. `ListSource` is a trait; the crate contains no list and no sync client in
-     0.1.x.
+  2. *Planned, not built (ROADMAP A18):* `ListMatcher<S: ListSource>`: local Hamming search over a hash list the *operator* syncs from a
+     source they are credentialed with. `ListSource` is a trait; the crate contains no list and no sync client, and
+     neither type exists yet.
   3. Concrete `ProviderProtocol` implementations are **profiles** (section 3.6), not part of this repository:
      endpoint paths and field names identify a provider just as a name does. The public crate has the trait,
      the request/response data types, the mock, and a *conformance suite* a profile runs against itself. No
@@ -192,11 +192,11 @@ state machines and decision functions; the host owns the transaction and the SQL
 - `preserve_until(events) -> Option<Instant>`: `None` means keep everything; otherwise one year after the
   latest of match, every send, every finish (pipeline §5.1, the PM's "every send counts"). Monotonic (I7),
   property-tested.
-- `viewed_by_esp(file)`: derived from "served under this case's grant" or an attested sighting, never from a
+- *Planned, not built (ROADMAP A19):* `viewed_by_esp(file)`, to be derived from "served under this case's grant" or an attested sighting, never from a
   button press (pipeline §3.1).
 - Two-person rule (I9): each operation in I9's set takes `TwoPeople::new(actor_a, actor_b)`, which fails on
   equal identities. Classifier-case clearance takes one reviewer, as the pipeline specifies.
-- Retention tags (I8) and an `Evidence` record holding digests, provider details and list versions.
+- Retention tags (I8) are planned, not built (ROADMAP A20). An `Evidence` record holds digests, provider details and list versions.
 
 **Implemented (S2-5), per the rulings below: plain records and pure functions only.** There are no
 store traits and no in-memory store in 0.x; the host persists a `CaseRecord`, calls a function, and
@@ -426,14 +426,14 @@ The terms the portfolio has read for the hash-match provider (reading notes, 202
 
 | Term | Mechanism here |
 |---|---|
-| Use only to remove or filter CSAM on our own service | no `export`/`share` API on match data; layer 3 retention tagged with purpose (I8) |
+| Use only to remove or filter CSAM on our own service | no `export`/`share` API on match data; purpose-tagged retention (I8) is planned, not built (A20) |
 | Match data never trains AI or feeds generative AI | I3: no conversion path; layer 5 isolated |
 | Credentials not shared or logged | I5 |
 | "No known match" is not clearance; duty stays ours | `CleanBasis` docs; no workflow treats `Clean` as a decision |
 | Outage or suspension must fail closed | I1 and the `Unavailable` reasons |
 | May send removal requests later, even after "no match" | `Kind::RemovalRequest` case entry, same clock as a known-hash match, never auto-filed (pipeline §3.1 d) |
 | Notify the provider of a credential leak or breach | operator runbook item; the crate exposes `Unavailable::CredentialsRefused` so a revoked credential is visible |
-| Retain match data only as long as the purpose needs | layer 3 purposes: `Audit`, `LegalPreservation`; adapters can enumerate by purpose for deletion |
+| Retain match data only as long as the purpose needs | planned, not built (A20): purposes `Audit`, `LegalPreservation`, enumerable by adapters for deletion. Today only `preserve_until` and the reaper rules bound retention |
 | Public statements about the provider limited to one sentence | the crate says nothing; CI forbids the name here |
 
 This table records mechanisms. It is not a statement that any operator's use complies; the operator carries

@@ -4,6 +4,11 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.35] - 2026-10-24
+
+### Changed
+- Docs only: DESIGN no longer promises what the code lacks. Retracted: base64 codec on `Hash256` (A16), `legacy-digests` feature (A17), per-layer Cargo features (A21). Marked "planned, not built" until a consumer asks: `normalise_geometry` (A15), `ListMatcher` (A18), `viewed_by_esp` (A19), retention purposes I8 (A20), including the section 7 rows that cited I8. No code change.
+
 ## [0.3.34] - 2026-10-24
 
 ### Changed
