@@ -4,6 +4,11 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.29] - 2026-10-23
+
+### Changed
+- CI: the `portfolio` job is repinned to the CodeRipper commit with the install fix. ROADMAP A11 to A13 record the findings the job reports (BSD-3-Clause licence file not named; no SPDX identifiers in source files; 11 reachability findings in `safeimage-wasm`).
+
 ## [0.3.28] - 2026-10-23
 
 ### Added
