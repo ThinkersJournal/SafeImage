@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 3: evidence states, review rules, preservation clock and the two-person set, as plain
 //! records and pure functions.
 //!

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Frame construction and the "never panics" contract of layer 1.
 
 mod support;

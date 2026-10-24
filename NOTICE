@@ -33,6 +33,9 @@ Median selection routine (src/hash/torben.rs: Rust port)
   Credit:    Torben Mogensen (algorithm), N. Devillard (implementation).
 
 Licence expression. The manifest declares "(MIT OR Apache-2.0) AND BSD-3-Clause".
+The BSD-3-Clause text is LICENSE-BSD-3-Clause at the repository root, a byte-for-byte copy of
+src/hash/LICENSE (blob 9406c626..., Meta's text, which both files must keep); each derived file also carries
+an SPDX-License-Identifier line above its upstream header, which is kept whole.
 Upstream's licence text (src/hash/LICENSE, verbatim, blob 9406c626...) is a BSD
 3-clause licence whose endorsement clause names "Facebook" and its contributors
 rather than "the copyright holder" as the SPDX BSD-3-Clause template does. The

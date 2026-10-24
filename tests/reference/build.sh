@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # Builds the unmodified upstream PDQ reference at the pinned commit with the harness and prints
 # the reference values for the synthetic frames. Output is committed as tests/fixtures/reference.txt.
 #

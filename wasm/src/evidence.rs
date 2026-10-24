@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 3 exports: evidence states, the case record, the preservation clock and the two-person
 //! rule. Pure and profile-independent; storage, transactions and the identity behind an actor id
 //! stay in the host (`docs/WASM-BOUNDARY.md` section 2).

@@ -233,6 +233,35 @@ jobs:
             echo "::error::forbidden pattern found (see above)"; exit 1
           fi
 
+  licence-headers:
+    name: SPDX identifiers and the BSD-3-Clause copy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Every tracked source file names its licence; the BSD-3-Clause copy matches upstream's text
+        run: |
+          set -o pipefail
+          has() { head -n 15 -- "$1" | grep -q 'SPDX-License-Identifier: '; }
+          # Positive control: the check must see a file with no identifier and one with it.
+          printf 'fn main() {}\n' > "$RUNNER_TEMP/bare.rs"
+          printf '// SPDX-License-Identifier: MIT\nfn main() {}\n' > "$RUNNER_TEMP/tagged.rs"
+          if has "$RUNNER_TEMP/bare.rs"; then echo "::error::control: bare file passed"; exit 1; fi
+          has "$RUNNER_TEMP/tagged.rs"
+          git ls-files -z -- '*.rs' '*.js' '*.mjs' '*.ts' '*.cpp' '*.sh' '*.py' > "$RUNNER_TEMP/src.lst"
+          total=$(tr -cd '\000' < "$RUNNER_TEMP/src.lst" | wc -c)
+          test "$total" -ge 57
+          missing=0
+          while IFS= read -r -d '' f; do
+            has "$f" || { echo "::error file=$f::no SPDX-License-Identifier in the first 15 lines"; missing=1; }
+          done < "$RUNNER_TEMP/src.lst"
+          echo "checked $total files"
+          test "$missing" -eq 0
+          a=$(git hash-object LICENSE-BSD-3-Clause)
+          b=$(git hash-object src/hash/LICENSE)
+          test "$a" = "$b"
+          test "$a" = 9406c626400cf7167750c03101f628a31bfe478d
+
   # Advisory portfolio check (CireSnave 2026-10-23): reported, not a required check; no rule is silenced.
   portfolio:
     permissions:

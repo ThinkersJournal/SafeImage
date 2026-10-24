@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Typed, synchronous wrapper over the `si_*` exports (docs/WASM-BOUNDARY.md). It owns the calling
 // convention (alloc, copy in, call, copy out, free) and the encodings, so a host never touches a
 // pointer. Every refusal of the module is a thrown `SafeImageError`; treat it as "hold".

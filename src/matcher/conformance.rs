@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! A suite a provider profile runs against itself. It lives here so every profile is held to the
 //! same fail-closed rules without this repository knowing any provider's wire format.
 

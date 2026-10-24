@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 3: evidence states, review rules, the preservation clock and the two-person set.
 
 use safeimage::evidence::*;

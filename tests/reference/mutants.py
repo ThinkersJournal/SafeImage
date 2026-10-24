@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Hand-picked mutation check for layer 1 (original SafeImage code, MIT OR Apache-2.0).
 
 Each mutation is applied to one source file, `cargo test` is run, and the file is restored. A

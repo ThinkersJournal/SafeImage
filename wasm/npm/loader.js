@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Loader for the SafeImage module (re-exported from index.js). It instantiates the module and checks its ABI version; the
 // exports are the raw pointer-and-length functions documented in docs/WASM-BOUNDARY.md.
 

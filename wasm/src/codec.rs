@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Versioned binary encoding for the structured types that cross the boundary (layer 2 so far).
 //!
 //! Hand-rolled, no dependencies (`docs/WASM-BOUNDARY.md` section 3). Every message starts with

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Binary encoding of the structured types that cross the boundary (docs/WASM-BOUNDARY.md section 3).
 // Mirrors wasm/src/codec.rs, report_codec.rs and evidence_codec.rs; wasm/npm/test.mjs replays the
 // repository's conformance vectors through it so the two cannot drift.

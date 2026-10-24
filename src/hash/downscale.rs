@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BSD-3-Clause
 // Derived from facebook/ThreatExchange pdq/cpp/downscaling/downscaling.cpp at commit
 // 07b82cb6e87b7e0ac7fc2a01d865df5db10ee1f2 (blob 03a62e3bbc8a1b4d53bfa0a9616e4a117c11a7ab).
 // Original: Copyright (c) Meta Platforms, Inc. and affiliates.

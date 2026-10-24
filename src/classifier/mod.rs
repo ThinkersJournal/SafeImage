@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 5: where a model-based score enters, kept apart from known-hash matching.
 //!
 //! This module imports **only** the frame type from layer 1. It has no path to the matcher, the

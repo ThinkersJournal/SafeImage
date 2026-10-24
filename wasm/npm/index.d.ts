@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 export declare const ABI_VERSION: 4;
 
 /** The module's raw exports: linear memory plus the `si_*` functions (docs/WASM-BOUNDARY.md). */

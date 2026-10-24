@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Layer 1: perceptual hashing of a decoded frame. Pure, `no_std` plus `alloc`, no I/O.
 //!
 //! The only image input is a [`Frame`]: raw RGB8 with explicit dimensions. Decoding is the host's.

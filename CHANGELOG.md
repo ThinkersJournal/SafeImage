@@ -4,6 +4,13 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.30] - 2026-10-24
+
+### Licensing
+- Every tracked source file (57: Rust, JavaScript, TypeScript, C++, shell, Python) now starts with an `SPDX-License-Identifier` line: `MIT OR Apache-2.0` for our own files, `BSD-3-Clause` for the three Meta-derived hash files and `LicenseRef-PublicDomain` for `torben.rs`. The derived files keep their upstream header, copyright line and pinned commit unchanged beneath it.
+- `LICENSE-BSD-3-Clause` at the root, byte-identical to `src/hash/LICENSE` (blob `9406c626...`), so the SPDX expression names a licence file; it ships in the package. `NOTICE` and the vetting record say so.
+- CI job `licence-headers` fails on a tracked source file without an identifier, and on the two licence copies diverging (with positive controls). ROADMAP A11 and A12 done.
+
 ## [0.3.29] - 2026-10-23
 
 ### Changed

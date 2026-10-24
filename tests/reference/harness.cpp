@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Reference harness for the SafeImage PDQ fixtures. This file is original SafeImage code
 // (MIT OR Apache-2.0). It links the unmodified upstream PDQ sources at the pinned commit and
 // prints, for each raw RGB frame file given, the values that tests/reference.rs compares.

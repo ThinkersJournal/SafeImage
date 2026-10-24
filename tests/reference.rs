@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Bit-for-bit agreement with the upstream PDQ reference at the pinned commit.
 //!
 //! `tests/fixtures/reference.txt` is produced by `tests/reference/build.sh`, which builds the
