@@ -66,8 +66,9 @@ codes, never credential values, never frames, never `Person` fields.
 
 ## From TypeScript (WebAssembly)
 
-Today `wasm/` exports layer 1 only: `si_pdq` and `si_pdq_dihedral`, over raw linear memory with no
-imports, instantiated synchronously from a compiled module. The layout and error codes are in the
-header of `wasm/src/lib.rs` and checked by `wasm/test.mjs`. Layers 2 to 4 are Rust-only until a
-boundary for them lands (DESIGN section 5 sets the acceptance criteria); a TypeScript host should not
-port them by hand.
+`wasm/` exports layers 1 to 4 (ABI version 4; layer 5 stays Rust only) over raw linear memory with no
+imports, instantiated synchronously from a compiled module. The encodings and error codes are in
+`docs/WASM-BOUNDARY.md`, checked by `wasm/test.mjs` and replayed from `wasm/vectors/`. CI packs the module
+with a typed wrapper as an npm package (`docs/NPM-PACKAGE.md`; `wasm/npm/README.md` shows the calls), so a
+TypeScript host calls methods and does not write pointer glue. A TypeScript host should not port the layers
+by hand.

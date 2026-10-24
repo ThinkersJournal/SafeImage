@@ -1,7 +1,8 @@
 # STEP 2 plan: first code, in order
 
-**Status:** proposal for the PM's gate, agreed in outline with the Community lane (2026-10-10). It turns
-`DESIGN.md` §6 into tasks with acceptance criteria. Nothing here is built.
+**Status:** the plan as agreed in outline with the Community lane (2026-10-10), kept as the record of the
+acceptance criteria. It turns `DESIGN.md` §6 into tasks. All six tasks are built (S2-1 to S2-6; see
+`CHANGELOG.md`); the "Version" lines below are the 2026-10-10 proposals, not what was allocated.
 
 Rules that apply to every task: no provider, destination or hash-service name in any file, test name, comment
 or commit (CI scans for it); no credential, hash list or real-service call; generated test images only; no

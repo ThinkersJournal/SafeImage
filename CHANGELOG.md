@@ -4,6 +4,11 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.34] - 2026-10-24
+
+### Changed
+- Docs only: spec-to-roadmap audit. README, DESIGN, INTEGRATION, WASM-BOUNDARY, PLAN-step2 and ROADMAP status lines brought to the code (published, layers 1 to 4 in WASM, ABI 4). ROADMAP gains A14 to A25: one row per doc claim the code does not meet (A15 to A21) or work held by another lane (A22 to A25). Nothing built or retracted.
+
 ## [0.3.33] - 2026-10-24
 
 ### Changed
