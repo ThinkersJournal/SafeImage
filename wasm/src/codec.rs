@@ -78,11 +78,6 @@ impl Writer {
         self.u32(s.len() as u32);
         self.buf.extend_from_slice(s.as_bytes());
     }
-
-    /// Raw bytes with no prefix.
-    pub fn raw(&mut self, b: &[u8]) {
-        self.buf.extend_from_slice(b);
-    }
 }
 
 /// Reads primitives from a slice.
@@ -316,6 +311,7 @@ pub fn encode_outcome(o: &MatchOutcome) -> Vec<u8> {
 }
 
 /// Decodes one outcome from a complete message.
+#[cfg(test)]
 pub fn decode_outcome(bytes: &[u8]) -> Result<MatchOutcome, CodecError> {
     let mut r = Reader::new(bytes)?;
     let o = get_outcome(&mut r)?;
@@ -324,6 +320,7 @@ pub fn decode_outcome(bytes: &[u8]) -> Result<MatchOutcome, CodecError> {
 }
 
 /// Encodes a list of outcomes (the input of `si_strongest`).
+#[cfg(test)]
 pub fn encode_outcomes(list: &[MatchOutcome]) -> Vec<u8> {
     let mut w = Writer::new();
     w.u32(list.len() as u32);
