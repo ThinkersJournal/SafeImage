@@ -7,7 +7,7 @@ change raises the second number (0.1.x to 0.2.0).
 ## [0.3.29] - 2026-10-23
 
 ### Changed
-- CI: the `portfolio` job is repinned to the CodeRipper commit with the install fix. ROADMAP A11 and A12 record the two licence findings the job reports (BSD-3-Clause licence file not named; no SPDX identifiers in source files).
+- CI: the `portfolio` job is repinned to the CodeRipper commit with the install fix. ROADMAP A11 to A13 record the findings the job reports (BSD-3-Clause licence file not named; no SPDX identifiers in source files; 11 reachability findings in `safeimage-wasm`).
 
 ## [0.3.28] - 2026-10-23
 
