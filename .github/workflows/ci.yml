@@ -244,15 +244,12 @@ jobs:
           set -o pipefail
           has() { head -n 15 -- "$1" | grep -q 'SPDX-License-Identifier: '; }
           # Positive control: the check must see a file with no identifier and one with it.
-          printf 'fn main() {}
-' > "$RUNNER_TEMP/bare.rs"
-          printf '// SPDX-License-Identifier: MIT
-fn main() {}
-' > "$RUNNER_TEMP/tagged.rs"
+          printf 'fn main() {}\n' > "$RUNNER_TEMP/bare.rs"
+          printf '// SPDX-License-Identifier: MIT\nfn main() {}\n' > "$RUNNER_TEMP/tagged.rs"
           if has "$RUNNER_TEMP/bare.rs"; then echo "::error::control: bare file passed"; exit 1; fi
           has "$RUNNER_TEMP/tagged.rs"
           git ls-files -z -- '*.rs' '*.js' '*.mjs' '*.ts' '*.cpp' '*.sh' '*.py' > "$RUNNER_TEMP/src.lst"
-          total=$(tr -cd ' ' < "$RUNNER_TEMP/src.lst" | wc -c)
+          total=$(tr -cd '\000' < "$RUNNER_TEMP/src.lst" | wc -c)
           test "$total" -ge 57
           missing=0
           while IFS= read -r -d '' f; do
