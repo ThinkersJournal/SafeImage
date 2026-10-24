@@ -14,9 +14,7 @@
     reason = "pointer-taking C ABI; every unsafe block states its contract"
 )]
 
-use safeimage::evidence::{
-    self as ev, CaseError, CaseKind, HoldTarget, Ineligible, ReleaseRefusal,
-};
+use safeimage::evidence::{self as ev, CaseError, HoldTarget, Ineligible, ReleaseRefusal};
 
 use crate::codec::CodecError;
 use crate::evidence_codec as ec;
@@ -325,17 +323,6 @@ pub fn release_code_for(
         Ok(()) => Ok(0),
         Err(r) => Err(release_code(r)),
     }
-}
-
-/// Wire tag of a case kind: 0 known hash, 1 classifier, 2 removal request, 3 moderator sighting.
-pub fn kind_from_code(k: u32) -> Option<CaseKind> {
-    Some(match k {
-        0 => CaseKind::KnownHash,
-        1 => CaseKind::Classifier,
-        2 => CaseKind::RemovalRequest,
-        3 => CaseKind::ModeratorSighting,
-        _ => return None,
-    })
 }
 
 // ---- C ABI ------------------------------------------------------------------------------------

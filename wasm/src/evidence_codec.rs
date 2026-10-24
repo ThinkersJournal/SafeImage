@@ -14,7 +14,7 @@ use safeimage::evidence::{
 };
 
 use crate::codec::{CodecError, Reader, Writer};
-use crate::report_codec::{status_from_tag, status_tag};
+use crate::report_codec::status_from_tag;
 
 /// Wire tag of an [`EvidenceState`]. Part of the ABI.
 pub fn state_tag(s: EvidenceState) -> u8 {
@@ -67,6 +67,7 @@ pub fn decode_two(bytes: &[u8]) -> Result<TwoPeople, CodecError> {
 }
 
 /// Encodes a pair as a complete message.
+#[cfg(test)]
 pub fn encode_two(t: &TwoPeople) -> Vec<u8> {
     let mut w = Writer::new();
     put_two(&mut w, t);
@@ -88,6 +89,7 @@ pub fn decode_event(bytes: &[u8]) -> Result<EvidenceEvent, CodecError> {
 }
 
 /// Encodes an evidence event as a complete message.
+#[cfg(test)]
 pub fn encode_event(e: &EvidenceEvent) -> Vec<u8> {
     let mut w = Writer::new();
     match e {
@@ -115,6 +117,7 @@ pub fn decode_approval(bytes: &[u8]) -> Result<ClearApproval, CodecError> {
 }
 
 /// Encodes a clear approval.
+#[cfg(test)]
 pub fn encode_approval(a: &ClearApproval) -> Vec<u8> {
     let mut w = Writer::new();
     match a {
@@ -180,11 +183,12 @@ pub fn decode_clocks(bytes: &[u8]) -> Result<Vec<ReportClock>, CodecError> {
 }
 
 /// Encodes report clocks (the inverse of [`decode_clocks`]; used by the vector generator).
+#[cfg(test)]
 pub fn encode_clocks(list: &[ReportClock]) -> Vec<u8> {
     let mut w = Writer::new();
     w.u32(list.len() as u32);
     for c in list {
-        w.u8(status_tag(c.status));
+        w.u8(crate::report_codec::status_tag(c.status));
         w.u32(c.sent_at.len() as u32);
         for t in &c.sent_at {
             w.u64(*t);

@@ -4,6 +4,11 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.31] - 2026-10-24
+
+### Removed
+- `safeimage-wasm`: `kind_from_code` and `Writer::raw`, which nothing called; the encoders and decoders only the tests call are `#[cfg(test)]`. No ABI or exported symbol changes. ROADMAP A13 done; F6 and A5 recorded done.
+
 ## [0.3.30] - 2026-10-24
 
 ### Licensing

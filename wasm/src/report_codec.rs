@@ -232,6 +232,7 @@ pub fn decode_step(bytes: &[u8]) -> Result<Step, CodecError> {
 }
 
 /// Encodes an answer as a complete message.
+#[cfg(test)]
 pub fn encode_answer(a: &DestinationAnswer) -> Vec<u8> {
     let mut w = Writer::new();
     match a {
