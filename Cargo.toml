@@ -1,6 +1,6 @@
 [package]
 name = "safeimage"
-version = "0.3.35"
+version = "0.3.36"
 edition = "2024"
 rust-version = "1.91"
 description = "Known-image matching, evidence handling and report building for platforms that accept image uploads."

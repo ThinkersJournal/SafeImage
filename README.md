@@ -6,6 +6,7 @@ accept image uploads.
 **Status: pre-1.0, published on crates.io as `safeimage`.** All five layers exist and are tested.
 The WebAssembly module (layers 1 to 4) is built in CI into an npm package (`docs/NPM-PACKAGE.md`).
 The boundary and the reasoning are in [`docs/DESIGN.md`](docs/DESIGN.md).
+A due-diligence patent sweep (not legal advice) is in [`docs/PATENT-SWEEP.md`](docs/PATENT-SWEEP.md).
 
 ## What it is for
 
