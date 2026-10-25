@@ -4,6 +4,11 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.36] - 2026-10-25
+
+### Added
+- Docs only: `docs/PATENT-SWEEP.md`, the due-diligence patent sweep of the 0.3 line at 351273b (13 hits read, none `needs-review`; one open item on the hash itself for the PM). Not legal advice. No code change.
+
 ## [0.3.35] - 2026-10-24
 
 ### Changed
