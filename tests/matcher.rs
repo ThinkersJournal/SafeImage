@@ -387,6 +387,10 @@ fn list_matcher_matches_exact_near_and_cleans_with_the_list_version() {
         (k.match_type, k.classification),
         (MatchType::Exact, Classification::Csam)
     );
+    // Distance 1 is Near, not Exact: only distance 0 is Exact.
+    assert!(
+        matches!(lm.lookup(&r(bits(39))), MatchOutcome::Match(k) if k.match_type == MatchType::Near)
+    );
     // Near, at the inclusive threshold (distance 31 from the listed hash).
     let near = bits(40).hamming_distance(&bits(9));
     assert_eq!(near, 31);
