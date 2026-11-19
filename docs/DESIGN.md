@@ -93,9 +93,10 @@ reference-comparison tests); each layer adds only what it needs, and no layer pu
 - Constants as **named, overridable defaults**, never hidden literals: `MATCH_DISTANCE_DEFAULT = 31`,
   `QUALITY_FLOOR_DEFAULT = 49` (the reference's published recommendations; a provider applies its own and
   the crate must not pretend otherwise).
-- Frame normalisation rule (reference downscale to 512 only when a side exceeds 512, no upscale) is not yet
-  a function in this crate (planned, not built: ROADMAP A15); until it is, the rule lives in each host's decoder.
-  The first consumer's decoder-service note (native size at or below 512) is the rule.
+- `normalise_geometry(width, height) -> (u32, u32)` and `NORMALISED_MAX_SIDE = 512`: the one definition of the
+  size rule (no upscale; a source whose longer side exceeds 512 is scaled so that side is 512, the other side
+  by the same ratio, rounded half up, never below 1). Arithmetic only: the host's decoder resizes and may check
+  its output against it. The crate hashes any frame up to `MAX_FRAME_PIXELS` at the size it is given.
 - Original-bytes digests (`md5`, `sha1`) are not provided: no consumer needs them to compare with a list, and
   they would exist only for that, never for integrity. A host that needs one computes it (ROADMAP A17, retracted).
 
