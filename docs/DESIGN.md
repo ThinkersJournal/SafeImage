@@ -161,9 +161,10 @@ pub enum MatchOutcome {                      // ordered by strength (I2)
 - **Implementations, in dependency order:**
   1. `MockMatcher` (always ships): scripted outcomes, used by every downstream test. Not behind a test cfg, so
      consumers can use it.
-  2. *Planned, not built (ROADMAP A18):* `ListMatcher<S: ListSource>`: local Hamming search over a hash list the *operator* syncs from a
-     source they are credentialed with. `ListSource` is a trait; the crate contains no list and no sync client, and
-     neither type exists yet.
+  2. `ListMatcher<S: ListSource>`: local Hamming search over a hash list the *operator* syncs from a
+     source they are credentialed with (default threshold `MATCH_DISTANCE_DEFAULT`, distance 0 is `Exact`, else
+     `Near`; strongest over all variants and entries). `ListSource` is a trait (`version`, `entries`); the crate
+     contains no list and no sync client. No list, or an empty one, is `Unavailable(NotConfigured)`, never `Clean`.
   3. Concrete `ProviderProtocol` implementations are **profiles** (section 3.6), not part of this repository:
      endpoint paths and field names identify a provider just as a name does. The public crate has the trait,
      the request/response data types, the mock, and a *conformance suite* a profile runs against itself. No

@@ -347,3 +347,83 @@ fn request_spec_carries_no_credentials_field() {
     assert!(spec.headers.is_empty());
     assert_eq!(spec.body.len(), 32);
 }
+
+struct Src(Option<Vec<ListEntry>>);
+impl ListSource for Src {
+    fn version(&self) -> Option<String> {
+        Some("v7".into())
+    }
+    fn entries(&self) -> Option<&[ListEntry]> {
+        self.0.as_deref()
+    }
+}
+
+fn entry(h: Hash256, c: Classification) -> ListEntry {
+    ListEntry {
+        hash: h,
+        classification: c,
+        detail: MatchDetail::default(),
+    }
+}
+
+fn bits(d: u32) -> Hash256 {
+    let mut w = [0u16; 16];
+    for k in 0..d as usize {
+        w[k / 16] |= 1 << (k % 16);
+    }
+    Hash256::from_words(w)
+}
+
+#[test]
+fn list_matcher_matches_exact_near_and_cleans_with_the_list_version() {
+    let list = vec![entry(bits(40), Classification::Csam)];
+    let lm = ListMatcher::new(Src(Some(list)));
+    let r = |h: Hash256| MatchRequest::pdq(vec![h]).unwrap();
+    // Exact.
+    let MatchOutcome::Match(k) = lm.lookup(&r(bits(40))) else {
+        panic!()
+    };
+    assert_eq!(
+        (k.match_type, k.classification),
+        (MatchType::Exact, Classification::Csam)
+    );
+    // Near, at the inclusive threshold (distance 31 from the listed hash).
+    let near = bits(40).hamming_distance(&bits(9));
+    assert_eq!(near, 31);
+    assert!(
+        matches!(lm.lookup(&r(bits(9))), MatchOutcome::Match(k) if k.match_type == MatchType::Near)
+    );
+    // Distance 32: clean, with the version.
+    let far = bits(8);
+    assert_eq!(bits(40).hamming_distance(&far), 32);
+    assert_eq!(
+        lm.lookup(&r(far)),
+        MatchOutcome::Clean(CleanBasis {
+            list_version: Some("v7".into()),
+            checked_at: None
+        })
+    );
+}
+
+#[test]
+fn list_matcher_takes_the_strongest_over_all_variants_and_entries() {
+    let list = vec![
+        entry(bits(0), Classification::Other("x".into())),
+        entry(bits(100), Classification::Csam),
+    ];
+    let lm = ListMatcher::with_threshold(Src(Some(list)), 0);
+    let req = MatchRequest::pdq(vec![bits(0), bits(100)]).unwrap();
+    assert!(
+        matches!(lm.lookup(&req), MatchOutcome::Match(k) if k.classification == Classification::Csam)
+    );
+}
+
+#[test]
+fn list_matcher_fails_closed_without_a_list() {
+    let req = MatchRequest::pdq(vec![Hash256::zero()]).unwrap();
+    for src in [Src(None), Src(Some(vec![]))] {
+        let out = ListMatcher::new(src).lookup(&req);
+        assert_eq!(out, MatchOutcome::Unavailable(Unavailable::NotConfigured));
+        assert!(!out.is_clean());
+    }
+}
