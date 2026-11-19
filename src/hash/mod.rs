@@ -10,11 +10,13 @@
 
 mod downscale;
 mod frame;
+mod geometry;
 mod hash256;
 mod pdq;
 mod torben;
 
 pub use frame::{Frame, FrameError, MAX_FRAME_PIXELS};
+pub use geometry::{NORMALISED_MAX_SIDE, normalise_geometry};
 pub use hash256::{Hash256, HexError};
 
 /// Meta's recommended match distance: two hashes at or below this are "similar". A provider

@@ -155,3 +155,24 @@ fn to_bytes_is_word_zero_first_little_endian() {
     assert_eq!(&b[30..], &[0xEF, 0xBE]);
     assert_eq!(b.len(), 32);
 }
+
+#[test]
+fn normalise_geometry_keeps_small_sources_and_scales_large_ones_to_512() {
+    use safeimage::hash::{NORMALISED_MAX_SIDE, normalise_geometry};
+    assert_eq!(NORMALISED_MAX_SIDE, 512);
+    // At or below 512 on the long side: unchanged, never upscaled.
+    assert_eq!(normalise_geometry(512, 512), (512, 512));
+    assert_eq!(normalise_geometry(300, 512), (300, 512));
+    assert_eq!(normalise_geometry(1, 1), (1, 1));
+    // Above: long side becomes 512, short side scaled and rounded half up.
+    assert_eq!(normalise_geometry(513, 513), (512, 512));
+    assert_eq!(normalise_geometry(1024, 512), (512, 256));
+    assert_eq!(normalise_geometry(512, 2048), (128, 512));
+    assert_eq!(normalise_geometry(2048, 1536), (512, 384));
+    assert_eq!(normalise_geometry(3000, 2001), (512, 342)); // 341.504 rounds to 342
+    assert_eq!(normalise_geometry(4096, 4096), (512, 512));
+    // The short side never reaches 0.
+    assert_eq!(normalise_geometry(100_000, 1), (512, 1));
+    // A zero side is returned as is.
+    assert_eq!(normalise_geometry(0, 9000), (0, 9000));
+}

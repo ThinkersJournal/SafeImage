@@ -10,11 +10,13 @@
 //! conformance suite a profile must pass.
 
 mod conformance;
+mod list;
 mod mock;
 mod outcome;
 mod protocol;
 
 pub use conformance::{Case, Expect, conformance_failures};
+pub use list::{ListEntry, ListMatcher, ListSource};
 pub use mock::{Matcher, MockMatcher};
 pub use outcome::{
     Classification, CleanBasis, Digest, KnownMatch, MAX_DETAIL_FIELD_BYTES, MAX_DETAILS,
