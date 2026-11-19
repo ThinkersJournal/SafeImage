@@ -531,3 +531,59 @@ fn nothing_in_the_crate_can_delete_anything() {
         }
     }
 }
+
+#[test]
+fn retention_purposes_follow_the_record() {
+    let c = cleared(CaseKind::KnownHash);
+    // Cleared, before the end: legal preservation. After the end: audit only.
+    assert_eq!(
+        retention_purposes(&c, Some(5_000), 5_000),
+        vec![RetentionPurpose::LegalPreservation]
+    );
+    assert_eq!(
+        retention_purposes(&c, Some(5_000), 5_001),
+        vec![RetentionPurpose::Audit]
+    );
+    // Keep-everything (None) is legal preservation.
+    assert_eq!(
+        retention_purposes(&c, None, 9_999),
+        vec![RetentionPurpose::LegalPreservation]
+    );
+    // A hold beats an expired clock.
+    let held = set_evidence_legal_hold(&c, &two(), "request", 10).unwrap();
+    assert_eq!(
+        retention_purposes(&held, Some(5_000), 6_000),
+        vec![RetentionPurpose::LegalPreservation]
+    );
+    // A confirmed case is kept for legal preservation.
+    let confirmed = confirm(&case(CaseKind::KnownHash), 2_000).unwrap();
+    assert_eq!(
+        retention_purposes(&confirmed, Some(5_000), 6_000),
+        vec![RetentionPurpose::LegalPreservation]
+    );
+    // Once destruction has begun and nothing legal remains: nothing is held.
+    let gone = begin_destruction_expired(&c, Some(5_000), 6_000, false).unwrap();
+    assert!(retention_purposes(&gone, Some(5_000), 6_000).is_empty());
+}
+
+#[test]
+fn viewed_by_esp_needs_a_grant_of_this_case_or_an_attestation() {
+    let sha = "ab".repeat(32);
+    let grants = vec!["g1".to_string()];
+    let ev = |basis| ViewEvidence {
+        sha256_hex: sha.clone(),
+        basis,
+        at: 1,
+    };
+    let served = |g: &str| ev(ViewBasis::ServedUnderGrant { grant_id: g.into() });
+    assert!(!viewed_by_esp(&sha, &grants, &[]));
+    assert!(viewed_by_esp(&sha, &grants, &[served("g1")]));
+    assert!(!viewed_by_esp(&sha, &grants, &[served("other-case")]));
+    assert!(viewed_by_esp(
+        &sha,
+        &[],
+        &[ev(ViewBasis::AttestedSighting { by: actor("mod-a") })]
+    ));
+    // Evidence for a different file does not count.
+    assert!(!viewed_by_esp(&"cd".repeat(32), &grants, &[served("g1")]));
+}

@@ -7,7 +7,7 @@ change raises the second number (0.1.x to 0.2.0).
 ## [0.3.37] - 2026-11-19
 
 ### Added
-- `hash::normalise_geometry(width, height)` and `NORMALISED_MAX_SIDE` (512): the one definition of the decoder size rule (ROADMAP A15). `matcher::{ListMatcher, ListSource, ListEntry}` (A18): local Hamming search over an operator-synced list, fails closed on an empty list. Additive; DESIGN 3.1 and 3.2 no longer say "planned, not built" for them.
+- `hash::normalise_geometry(width, height)` and `NORMALISED_MAX_SIDE` (512): the one definition of the decoder size rule (ROADMAP A15). `matcher::{ListMatcher, ListSource, ListEntry}` (A18): local Hamming search over an operator-synced list, fails closed on an empty list. `evidence::{viewed_by_esp, ViewEvidence, ViewBasis}` (A19) and `evidence::{retention_purposes, RetentionPurpose}` (A20, I8). All additive; DESIGN 3.1 to 3.3, I8 and section 7 no longer say "planned, not built" for them.
 
 ## [0.3.36] - 2026-10-25
 

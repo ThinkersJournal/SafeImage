@@ -57,7 +57,7 @@ These are properties of the types, not of documentation. Each has a test in the 
 | I5 | **Credentials are opaque.** Secret wrappers have a redacting `Debug`/`Display`, no `Serialize`, and are never read from the environment or disk by the crate. | provider terms (credentials not shared or logged) |
 | I6 | **No image bytes in errors, logs or `Debug` output.** Frames and files are wrapped in a type that prints length only. | upload-scan §10.2 |
 | I7 | **Preservation only grows.** The preservation end date is a pure function of recorded events and is monotonic: no event moves it earlier. | pipeline §5.1, P2, P5 |
-| I8 | **Retention has a named purpose (planned, not built: ROADMAP A20).** Match data held by layer 3 is to carry a purpose tag that storage adapters can enumerate by. No such type exists yet. | provider terms (retention limited to purpose; audit and legal retention named) |
+| I8 | **Retention has a named purpose.** What layer 3 holds is held for `RetentionPurpose::Audit` or `LegalPreservation`, derived by `retention_purposes` from the case record (no setter), so a storage adapter can enumerate by it. | provider terms (retention limited to purpose; audit and legal retention named) |
 | I9 | **Two-person rule is checked in the crate**, not by the caller. One set of operations takes two distinct actor identities or returns an error: CLEAR of a known-hash case, CLEAR of a removal-request case, the `file_without_evidence` decision, setting and lifting an evidence legal hold, and destruction. | pipeline §7.2, §5.3, P7; upload-scan §5.7 |
 
 ---
@@ -194,11 +194,12 @@ state machines and decision functions; the host owns the transaction and the SQL
 - `preserve_until(events) -> Option<Instant>`: `None` means keep everything; otherwise one year after the
   latest of match, every send, every finish (pipeline §5.1, the PM's "every send counts"). Monotonic (I7),
   property-tested.
-- *Planned, not built (ROADMAP A19):* `viewed_by_esp(file)`, to be derived from "served under this case's grant" or an attested sighting, never from a
-  button press (pipeline §3.1).
+- `viewed_by_esp(sha256_hex, case_grant_ids, evidence)`: true only for a `ViewEvidence` of that file that is
+  "served under this case's grant" (`ViewBasis::ServedUnderGrant`, the grant id must be one of the case's) or an
+  attested sighting (`ViewBasis::AttestedSighting`); there is no other basis, so never a button press (pipeline §3.1).
 - Two-person rule (I9): each operation in I9's set takes `TwoPeople::new(actor_a, actor_b)`, which fails on
   equal identities. Classifier-case clearance takes one reviewer, as the pipeline specifies.
-- Retention tags (I8) are planned, not built (ROADMAP A20). An `Evidence` record holds digests, provider details and list versions.
+- `retention_purposes(case, preserve_until, now) -> Vec<RetentionPurpose>` (I8): `LegalPreservation` while the case is confirmed, held, or inside its preservation period (or `preserve_until` is `None`); else `Audit` until destruction has begun; else none. Derived from the record, no setter. An `Evidence` record holds digests, provider details and list versions.
 
 **Implemented (S2-5), per the rulings below: plain records and pure functions only.** There are no
 store traits and no in-memory store in 0.x; the host persists a `CaseRecord`, calls a function, and
@@ -428,14 +429,14 @@ The terms the portfolio has read for the hash-match provider (reading notes, 202
 
 | Term | Mechanism here |
 |---|---|
-| Use only to remove or filter CSAM on our own service | no `export`/`share` API on match data; purpose-tagged retention (I8) is planned, not built (A20) |
+| Use only to remove or filter CSAM on our own service | no `export`/`share` API on match data; purpose-derived retention (I8, `retention_purposes`) |
 | Match data never trains AI or feeds generative AI | I3: no conversion path; layer 5 isolated |
 | Credentials not shared or logged | I5 |
 | "No known match" is not clearance; duty stays ours | `CleanBasis` docs; no workflow treats `Clean` as a decision |
 | Outage or suspension must fail closed | I1 and the `Unavailable` reasons |
 | May send removal requests later, even after "no match" | `Kind::RemovalRequest` case entry, same clock as a known-hash match, never auto-filed (pipeline §3.1 d) |
 | Notify the provider of a credential leak or breach | operator runbook item; the crate exposes `Unavailable::CredentialsRefused` so a revoked credential is visible |
-| Retain match data only as long as the purpose needs | planned, not built (A20): purposes `Audit`, `LegalPreservation`, enumerable by adapters for deletion. Today only `preserve_until` and the reaper rules bound retention |
+| Retain match data only as long as the purpose needs | `retention_purposes` names `Audit` and `LegalPreservation` for adapters to enumerate by; `preserve_until` and the reaper rules still bound the period |
 | Public statements about the provider limited to one sentence | the crate says nothing; CI forbids the name here |
 
 This table records mechanisms. It is not a statement that any operator's use complies; the operator carries

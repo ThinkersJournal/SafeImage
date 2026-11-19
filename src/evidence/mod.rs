@@ -17,6 +17,7 @@
 mod case;
 mod people;
 mod preserve;
+mod purpose;
 mod state;
 
 pub use case::{
@@ -27,6 +28,7 @@ pub use case::{
 };
 pub use people::{ActorId, SamePerson, TwoPeople};
 pub use preserve::{ReportClock, preservation_period_secs, preserve_until};
+pub use purpose::{RetentionPurpose, ViewBasis, ViewEvidence, retention_purposes, viewed_by_esp};
 pub use state::{
     CaseEvidence, EvidenceEvent, EvidenceState, FileDisposition, TransitionRefused, case_evidence,
     report_file_disposition, report_may_submit, transition,
