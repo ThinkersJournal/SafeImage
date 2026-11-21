@@ -114,3 +114,26 @@ No hit has the verdict `needs-review`. One open item is not a hit, and it is the
 - Patent claims are read as ordinary English by a model. Claim construction is a legal task.
 - Re-sweep when the project adds a new family of capability (for example `ListMatcher`, ROADMAP A18, or
   `normalise_geometry`, A15), and at least yearly.
+
+## Addendum 2026-11-21: re-sweep for 0.3.37 (A15, A18, A19, A20)
+
+Run by: SafeImage lane, Claude Sonnet 5.5. Same limits as above, and weaker: the search tool did not honour the
+`site:` restriction, so most hits were USPTO print PDFs, not Google Patents pages. **NOT legal advice.**
+
+New ideas since the sweep above: (15) a size rule that fixes the largest side a decoder may hand to the hash
+(`normalise_geometry`, A15); (16) a local Hamming search over an operator-synced hash list that answers
+`Unavailable` on no or an empty list (`ListMatcher`, A18); (17) "viewed by the provider" derived only from a
+case-grant service or an attested sighting (A19); (18) retention purposes derived from the case record, with no
+stored tag (A20).
+
+| # | Idea | Query (2026-11-21) | Read | Verdict |
+|---|---|---|---|---|
+| Q10 | 16 | `patent Hamming distance search local hash list synchronized from remote service image matching` | titles and snippets only (US11055561, US11347787, US9009149, EP2685404A3) | no verdict: none read in full; none seen to describe an operator-synced list |
+| Q11 | 16 | `patent fail closed empty hash list image scanning content upload block` | US12620199B2 (Dell, granted 2026-05-05, active) claims 1 and 11 read | **not on claim 1 as read**: it creates new sub-frames on an area of the image, positioned by the list, and compares per-frame hashes; `ListMatcher` compares one whole-frame hash by Hamming distance and creates no sub-frames. Dependent claims 2-10 and 12-20 not read |
+| Q12 | 15 | `patent downscale image maximum side length normalised dimensions before perceptual hashing` | snippets only (US9042670, US11871057, US10325346, US8437560) | no verdict: US11871057 uses a fixed 120x60 downscale, not a side cap, per the snippet; claims not read |
+| Q13 | 18 | `patent retention purposes legal preservation audit data retention derived from record` | none (no patent returned) | no verdict: nothing searched effectively |
+
+Idea 17 was not searched. Ideas 15 to 18 carry no clearance. The one hit read in full (US12620199B2) differs on
+claim 1 by a sub-frame step the crate does not have; that is a reading by a model, not a claim construction.
+Open item for the PM unchanged: the hash (idea 1) remains the only mechanism with named upstream patent terms;
+none of the new ideas is marked `needs-review`.
