@@ -4,6 +4,11 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.39] - 2026-11-22
+
+### Added
+- Docs only: addendum to `docs/PATENT-SWEEP.md` re-sweeping A15, A18-A20 (one hit read in full, none `needs-review`; most queries unread or inconclusive, stated there). Not legal advice. No code change.
+
 ## [0.3.38] - 2026-11-21
 
 ### Changed
