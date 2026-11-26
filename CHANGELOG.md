@@ -4,6 +4,12 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, a breaking
 change raises the second number (0.1.x to 0.2.0).
 
+## [0.3.40] - 2026-11-26
+
+### Changed
+
+- CI only: portfolio workflow pinned to coderipper 467fd259 (0.48.1), SafeImage#47. No code change; not breaking. Allocated by pm-assist.
+
 ## [0.3.39] - 2026-11-22
 
 ### Added
